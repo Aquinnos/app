@@ -14,7 +14,7 @@ Baza danych:
 
 Zawartość:
 
-- projekty
+- projekty:
  * opis
  * fundusz
  * osoba finansująca
@@ -37,13 +37,13 @@ Interfejs użytkownika:
 
 Formularze:
 
-- Formularz logowania
+- Formularz logowania:
  * możliwość wejścia bez logowania
  * rejestracja 
  * logowanie
  * możliwy reset hasła
 
-- Formularz wniosku
+- Formularz wniosku:
  * wybranie projektu
  * dane osobowe (wymagane)
  * pliki (ale jeszcze zobaczymy)
