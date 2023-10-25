@@ -1778,19 +1778,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Aquinn\\.nuget\\packages\\": {}
+    "/home/codespace/.nuget/packages/": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Aquinn\\Desktop\\app\\app.csproj",
+      "projectUniqueName": "/workspaces/app/app.csproj",
       "projectName": "app",
-      "projectPath": "C:\\Users\\Aquinn\\Desktop\\app\\app.csproj",
-      "packagesPath": "C:\\Users\\Aquinn\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Aquinn\\Desktop\\app\\obj\\",
+      "projectPath": "/workspaces/app/app.csproj",
+      "packagesPath": "/home/codespace/.nuget/packages/",
+      "outputPath": "/workspaces/app/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\Aquinn\\AppData\\Roaming\\NuGet\\NuGet.Config"
+        "/home/codespace/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
         "net7.0"
@@ -1835,7 +1835,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.402\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/usr/local/dotnet/7.0.306/sdk/7.0.306/RuntimeIdentifierGraph.json"
       }
     }
   }
