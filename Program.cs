@@ -1,45 +1,48 @@
 ﻿using System;
-using MySql.Data.MySqlClient;
 
-internal class App
+internal class Program
 {
     private static void Main(string[] args)
     {
-        Console.WriteLine("Hello, World!");
-
-        // Ustal połączenie z bazą danych MySQL
-        string connectionString = "Server=localhost;Database=govApp;User ID=root;Password=;";
-        MySqlConnection connection = new MySqlConnection(connectionString);
-
-        try
+        while (true)
         {
-            // Otwarcie połączenia
-            connection.Open();
+            Console.WriteLine("Wybierz opcję:");
+            Console.WriteLine("1. Dostępne Programy");
+            Console.WriteLine("2. Moje Wnioski");
+            Console.WriteLine("3. Profil");
+            Console.WriteLine("4. Pomoc i obsługa"); 
+            Console.WriteLine("5. Wyjście");
 
-            // Wykonuj operacje na bazie danych
-            string sql = "SELECT * FROM Users";
-            MySqlCommand command = new MySqlCommand(sql, connection);
-            MySqlDataReader reader = command.ExecuteReader();
+            string userInput = Console.ReadLine();
 
-            while (reader.Read())
+            if (userInput != null)
             {
-                // Odczytywanie wyników zapytania
-                int userID = reader.GetInt32("UserID");
-                string username = reader.GetString("Username");
-                // Dodaj inne kolumny, które chcesz odczytać
-                Console.WriteLine($"UżytkownikID: {userID}, Nazwa użytkownika: {username}");
+                switch (userInput)
+                {
+                    case "1":
+                        Console.WriteLine("Przechodzisz do Dostępnych Programów"); //funkcja programow
+                        break;
+                    case "2":
+                        Console.WriteLine("Przechodzisz do Moich Wniosków"); // funkcja wnioski
+                        break;
+                    case "3":
+                        Console.WriteLine("Przechodzisz do Profilu"); //funkcja profilu uzytkownika
+                        break;
+                    case "4":
+                        Console.WriteLine("Przechodzisz do Pomocy i Obsługi"); //funkcja  pomocy i obslugi (moze jakieś faq)
+                        break;
+                    case "5":
+                        Console.WriteLine("Zamykanie aplikacji."); //funkcja
+                        return;
+                    default:
+                        Console.WriteLine("Niepoprawna opcja. Wybierz jeszcze raz."); // funkcja
+                        break;
+                }
             }
-
-            reader.Close();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Wystąpił błąd: {ex.Message}");
-        }
-        finally
-        {
-            // Zamknięcie połączenia
-            connection.Close();
+            else
+            {
+                Console.WriteLine("Wystąpił problem z odczytem danych. Spróbuj jeszcze raz.");
+            }
         }
     }
 }
