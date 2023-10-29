@@ -15,11 +15,14 @@ Baza danych:
 Zawartość:
 
 - projekty:
- * opis
- * fundusz
- * osoba finansująca
- * termin
- * środki na fundusz
+  1. ID programu: Unikalny identyfikator programu rządowego.
+  2. Nazwa programu: Nazwa programu lub inna krótka nazwa identyfikująca program.
+  3. Opis programu: Szczegółowy opis programu, który może zawierać cele, zakres i informacje ogólne na jego temat.
+  4. Fundusz: Informacja o dostępnym funduszu lub budżecie przeznaczonym na program.
+  5. Data rozpoczęcia: Data rozpoczęcia programu. (obojetnie)
+  6. Data zakończenia: Data planowanego zakończenia programu. (obojetnie)
+  7. Osoba odpowiedzialna: Informacje o osobie odpowiedzialnej za program.
+  8. Kategoria programu: Kategoria lub obszar, do którego należy program (np. edukacja, zdrowie, kultura).
 
 - wnioski:
  * dane (wymagane)
