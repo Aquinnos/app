@@ -68,3 +68,18 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
+CREATE TABLE `programy` (
+  `ID_programu` int(11) NOT NULL PRIMARY KEY,
+  `Nazwa_programu` varchar(50) NOT NULL,
+  `Opis_programu` varchar(255) NOT NULL,
+  `Fundusz` int(50) DEFAULT NULL,
+  `Data_rozpoczęcia` data(50) NOT NULL,
+  `Data_zakończenia` data(50) DEFAULT NULL,
+  `Osoba_odpowiedzialna` varchar(100) DEFAULT NULL,
+  `Kategoria_programu` varchar(100) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+INSERT INTO `programy` (`ID_programu`, `Nazwa_programu`, `Opis_programu`, `Fundusz`, `Data_rozpoczęcia`, `Data_zakończenia`, `Osoba_odpowiedzialna`, `Kategoria_programu`) 
+VALUES (1,'program1', 'programa', , 2020-12-08, , '', '');
+
