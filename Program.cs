@@ -6,19 +6,10 @@ internal class Program
     private static void Main(string[] args)
     {
         // Utwórz instancję DatabaseConnector i podaj ścieżkę do bazy danych SQLite
-        DatabaseConnector dbConnector = new DatabaseConnector("/govapp.sqlite");
+        DatabaseConnector dbConnector = new DatabaseConnector("./govapp.sqlite");
 
         // Otwórz połączenie z bazą danych
         dbConnector.OpenConnection();
-
-        if (dbConnector.GetConnection().State == System.Data.ConnectionState.Open)
-            {
-                Console.WriteLine("Połączono z bazą danych.");
-            }
-            else
-            {
-                Console.WriteLine("Błąd połączenia z bazą danych.");
-            }
 
         while (true)
         {
