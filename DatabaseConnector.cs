@@ -1,17 +1,18 @@
-using MySql.Data.MySqlClient;
+using Microsoft.Data.Sqlite;
 
 public class DatabaseConnector
 {
-    private MySqlConnection connection;
+    private SqliteConnection connection;
     private string connectionString;
 
-    public DatabaseConnector()
+    public DatabaseConnector(string databasePath)
     {
-        connectionString = "server=localhost;user=root;password=;database=govapp;";
-        connection = new MySqlConnection(connectionString);
+        // Skonfiguruj połączenie z bazą danych SQLite
+        connectionString = $"Data Source={databasePath}";
+        connection = new SqliteConnection(connectionString);
     }
 
-    public MySqlConnection GetConnection()
+    public SqliteConnection GetConnection()
     {
         return connection;
     }
@@ -32,3 +33,4 @@ public class DatabaseConnector
         }
     }
 }
+
