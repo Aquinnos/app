@@ -7,7 +7,6 @@ public class DatabaseConnector
 
     public DatabaseConnector(string databasePath)
     {
-        // Skonfiguruj połączenie z bazą danych SQLite
         connectionString = $"Data Source={databasePath}";
         connection = new SqliteConnection(connectionString);
     }

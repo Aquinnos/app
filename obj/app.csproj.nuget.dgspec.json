@@ -38,6 +38,10 @@
         "net7.0": {
           "targetAlias": "net7.0",
           "dependencies": {
+            "BCrypt.Net-Next": {
+              "target": "Package",
+              "version": "[4.0.3, )"
+            },
             "Microsoft.Data.Sqlite": {
               "target": "Package",
               "version": "[7.0.13, )"
@@ -45,6 +49,10 @@
             "MySql.Data": {
               "target": "Package",
               "version": "[8.2.0, )"
+            },
+            "Spectre.Console": {
+              "target": "Package",
+              "version": "[0.47.0, )"
             }
           },
           "imports": [

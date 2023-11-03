@@ -2,6 +2,8 @@
 using System.Threading;
 using Microsoft.Data.Sqlite;
 using System.Media;
+using Spectre.Console;
+using BCrypt.Net;
 
 namespace govApp
 {
@@ -18,33 +20,45 @@ namespace govApp
         {
             using (var cmd = _connection.CreateCommand())
             {
-                cmd.CommandText = "SELECT UserId FROM users WHERE Username = @username AND Password = @password";
+                cmd.CommandText = "SELECT UserId, Password FROM users WHERE Username = @username";
                 cmd.Parameters.AddWithValue("@username", username);
-                cmd.Parameters.AddWithValue("@password", password);
 
                 using (var reader = cmd.ExecuteReader())
                 {
                     if (reader.Read())
                     {
-                        // zwracamy true kiedy znaleziono użytkownika
-                        return true;
+                        string hashedPassword = reader["Password"].ToString();
+
+                        // Porównaj wprowadzone hasło z zahaszowanym hasłem z bazy danych
+                        if (BCrypt.Net.BCrypt.Verify(password, hashedPassword))
+                        {
+                            // Hasła pasują, zwracamy true
+                            return true;
+                        }
                     }
                 }
 
-                // zwracany false kiedy nie znaleziono użytkownika
+                // Hasła nie pasują lub użytkownik nie istnieje, zwracamy false
                 return false;
             }
         }
 
-        public bool Register(string username, string password, string firstName, string lastName)
+
+        public bool Register(string username, string password, string imie, string nazwisko, string wiek, string pesel)
         {
             using (var cmd = _connection.CreateCommand())
             {
-                cmd.CommandText = "INSERT INTO users (Username, Password, FirstName, LastName) VALUES (@username, @password, @firstName, @lastName)";
+                cmd.CommandText = "INSERT INTO users (Username, Password, Imie, Nazwisko, Wiek, Pesel) VALUES (@username, @password, @imie, @nazwisko, @wiek, @pesel)";
                 cmd.Parameters.AddWithValue("@username", username);
-                cmd.Parameters.AddWithValue("@password", password);
-                cmd.Parameters.AddWithValue("@firstName", firstName);
-                cmd.Parameters.AddWithValue("@lastName", lastName);
+
+                // Haszowanie hasła przed zapisem do bazy danych
+                string hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
+                cmd.Parameters.AddWithValue("@password", hashedPassword);
+
+                cmd.Parameters.AddWithValue("@imie", imie);
+                cmd.Parameters.AddWithValue("@nazwisko", nazwisko);
+                cmd.Parameters.AddWithValue("@wiek", wiek);
+                cmd.Parameters.AddWithValue("@pesel", pesel);
 
                 int rowsAffected = cmd.ExecuteNonQuery();
 
@@ -52,8 +66,8 @@ namespace govApp
                 return rowsAffected > 0;
             }
         }
-    }
 
+    }
 
 
     internal class Program
@@ -63,6 +77,8 @@ namespace govApp
             DatabaseConnector dbConnector = new DatabaseConnector("./govapp.sqlite");
             dbConnector.OpenConnection();
             Authentication authentication = new Authentication(dbConnector.GetConnection());
+
+            new Style(foreground: Color.Maroon);
 
             ConsoleKeyInfo keyInfo;
             int selectedOption = 0;
@@ -81,29 +97,52 @@ namespace govApp
  \__, /\____/|___/_/  |_/ .___/ .___/ 
 /____/                 /_/   /_/      
         ";
-
             Console.WriteLine(asciiArt);
-            Console.WriteLine("\n");
+            Console.WriteLine();
+            Console.WriteLine("===========================================");
+            Console.WriteLine();
 
             Console.WriteLine("Witaj w Aplikacji Rządowej!");
-            Console.WriteLine("================================");
+            Console.WriteLine();
             Thread.Sleep(1000);
 
-            Console.WriteLine("Aplikacja Rządowa to narzędzie do dostępu do różnych programów i formularzy rządowych.");
+            Console.WriteLine("To narzędzie, które umożliwia Ci korzystanie z różnych programów rządowych oraz składanie wniosków w wygodny i intuicyjny sposób.");
             Thread.Sleep(1000);
             Console.WriteLine("Możesz korzystać z dostępnych programów, składać wnioski oraz zarządzać swoim profilem.");
             Thread.Sleep(1000);
-            Console.WriteLine("Aby rozpocząć, wybierz jedną z dostępnych opcji z poniższego menu.");
+            Console.WriteLine("Dodatkowo, możesz zarządzać swoim profilem, dostosowując go do swoich potrzeb.");
             Thread.Sleep(3000);
             Console.WriteLine("\n");
-            Console.Clear();
+
+            AnsiConsole.Status()
+                .Start("Synchronizacja bazy danych...", ctx =>
+                {
+                    // symulacja 
+                    AnsiConsole.MarkupLine("Przygotowywanie tabel...");
+                    Thread.Sleep(3000);
+
+                    // aktualizacja statusu
+                    ctx.Status("Już prawie!");
+                    ctx.Spinner(Spinner.Known.Star);
+                    ctx.SpinnerStyle(Style.Parse("green"));
+
+                    // Symulacja
+                    AnsiConsole.MarkupLine("Ładuje...");
+                    Thread.Sleep(3000);
+                });
 
             while (!isLoggedIn)
             {
                 Console.Clear();
                 Console.WriteLine(asciiArt);
-                Console.WriteLine("\n");
-                Console.WriteLine("Logowanie lub Rejestracja:");
+                Console.WriteLine();
+                Console.WriteLine("===========================================");
+                Console.WriteLine();
+                Console.WriteLine("Witamy w oknie logowania.");
+                Console.WriteLine();
+                Console.WriteLine("Aby skorzystać z naszej aplikacji prosimy o wybraniu opcji logowania.");
+                Console.WriteLine("Proszę wybrać jedną opcję:");
+                Console.WriteLine();
                 for (int i = 0; i < 3; i++)
                 {
                     if (i == selectedOption)
@@ -123,17 +162,44 @@ namespace govApp
                         Console.Write("Podaj nazwę użytkownika: ");
                         username = Console.ReadLine();
                         Console.Write("Podaj hasło: ");
-                        string password = Console.ReadLine();
+                        string password = "";
+                        while (true)
+                        {
+                            ConsoleKeyInfo key = Console.ReadKey(true);
 
+                            if (key.Key == ConsoleKey.Enter)
+                            {
+                                break;
+                            }
+                            else if (key.Key == ConsoleKey.Backspace)
+                            {
+                                if (password.Length > 0)
+                                {
+                                    password = password.Substring(0, password.Length - 1);
+                                    Console.Write("\b \b"); // usuwamy ostatni znak i przesuwamy kursor w lewo
+                                }
+                            }
+                            else
+                            {
+                                password += key.KeyChar;
+                                Console.Write("*"); // zamiana znakow na gwiazdke
+                            }
+                        }
+
+                        Console.WriteLine();
                         if (authentication.Login(username, password))
                         {
                             isLoggedIn = true;
+                            Console.WriteLine();
                             Console.WriteLine("Zalogowano pomyślnie!");
+                            Console.WriteLine();
                             Thread.Sleep(1000);
                         }
                         else
                         {
+                            Console.WriteLine();
                             Console.WriteLine("Błąd logowania. Spróbuj ponownie.");
+                            Console.WriteLine();
                             Thread.Sleep(1000);
                         }
                     }
@@ -144,28 +210,59 @@ namespace govApp
                         Console.Write("Podaj nazwę użytkownika: ");
                         username = Console.ReadLine();
                         Console.Write("Podaj hasło: ");
-                        string password = Console.ReadLine();
+                        string password = "";
+                        while (true)
+                        {
+                            ConsoleKeyInfo key = Console.ReadKey(true);
+
+                            if (key.Key == ConsoleKey.Enter)
+                            {
+                                break;
+                            }
+                            else if (key.Key == ConsoleKey.Backspace)
+                            {
+                                if (password.Length > 0)
+                                {
+                                    password = password.Substring(0, password.Length - 1);
+                                    Console.Write("\b \b"); // usuwamy ostatni znak i przesuwamy kursor w lewo
+                                }
+                            }
+                            else
+                            {
+                                password += key.KeyChar;
+                                Console.Write("*"); // zamiana znakow na gwiazdke
+                            }
+                        }
+                        Console.WriteLine();
                         Console.Write("Podaj imię: ");
-                        string firstName = Console.ReadLine();
+                        string imie = Console.ReadLine();
                         Console.Write("Podaj nazwisko: ");
-                        string lastName = Console.ReadLine();
+                        string nazwisko = Console.ReadLine();
+                        Console.Write("Podaj wiek: ");
+                        string wiek = Console.ReadLine();
+                        Console.Write("Podaj pesel: ");
+                        string pesel = Console.ReadLine();
 
                         // sprawdzamy czy pola nie są puste
-                        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(firstName) || string.IsNullOrWhiteSpace(lastName))
+                        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(imie) || string.IsNullOrWhiteSpace(nazwisko) || string.IsNullOrWhiteSpace(wiek) || string.IsNullOrWhiteSpace(pesel))
                         {
                             Console.WriteLine("Wszystkie pola są wymagane. Spróbuj ponownie.");
                             Thread.Sleep(1000);
                         }
                         else
                         {
-                            if (authentication.Register(username, password, firstName, lastName))
+                            if (authentication.Register(username, password, imie, nazwisko, wiek, pesel))
                             {
+                                Console.WriteLine();
                                 Console.WriteLine("Zarejestrowano pomyślnie!");
+                                Console.WriteLine();
                                 Thread.Sleep(1000);
                             }
                             else
                             {
+                                Console.WriteLine();
                                 Console.WriteLine("Błąd rejestracji. Spróbuj ponownie.");
+                                Console.WriteLine();
                                 Thread.Sleep(1000);
                             }
                         }
@@ -197,8 +294,11 @@ namespace govApp
             {
                 Console.Clear();
                 Console.WriteLine(asciiArt);
-                Console.WriteLine("\n");
+                Console.WriteLine();
+                Console.WriteLine("===========================================");
+                Console.WriteLine();
                 Console.WriteLine($"Zalogowano jako: {username}");
+                Console.WriteLine();
                 for (int i = 3; i < menuOptions.Length; i++)
                 {
                     if (i == selectedOption)
@@ -239,6 +339,7 @@ namespace govApp
                             return;
                     }
 
+                    Console.WriteLine();
                     Console.WriteLine("Naciśnij dowolny klawisz, aby kontynuować...");
                     Console.ReadKey();
                 }

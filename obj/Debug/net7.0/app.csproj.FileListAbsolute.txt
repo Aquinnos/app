@@ -144,3 +144,5 @@ C:\Users\Aquinn\Desktop\app\bin\Debug\net7.0\runtimes\win-arm\native\e_sqlite3.d
 C:\Users\Aquinn\Desktop\app\bin\Debug\net7.0\runtimes\win-arm64\native\e_sqlite3.dll
 C:\Users\Aquinn\Desktop\app\bin\Debug\net7.0\runtimes\win-x64\native\e_sqlite3.dll
 C:\Users\Aquinn\Desktop\app\bin\Debug\net7.0\runtimes\win-x86\native\e_sqlite3.dll
+C:\Users\Aquinn\Desktop\app\bin\Debug\net7.0\Spectre.Console.dll
+C:\Users\Aquinn\Desktop\app\bin\Debug\net7.0\BCrypt.Net-Next.dll
