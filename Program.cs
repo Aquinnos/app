@@ -44,20 +44,19 @@ namespace govApp
         }
 
 
-        public bool Register(string username, string password, string imie, string nazwisko, string wiek, string pesel)
+        public bool Register(string username, string password, string imie, string nazwisko, string data_urodzenia, string pesel)
         {
             using (var cmd = _connection.CreateCommand())
             {
-                cmd.CommandText = "INSERT INTO users (Username, Password, Imie, Nazwisko, Wiek, Pesel) VALUES (@username, @password, @imie, @nazwisko, @wiek, @pesel)";
+                cmd.CommandText = "INSERT INTO users (Username, Password, Imie, Nazwisko, data_urodzenia, Pesel) VALUES (@username, @password, @imie, @nazwisko, @data_urodzenia, @pesel)";
                 cmd.Parameters.AddWithValue("@username", username);
 
                 // Haszowanie hasła przed zapisem do bazy danych
                 string hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
                 cmd.Parameters.AddWithValue("@password", hashedPassword);
-
                 cmd.Parameters.AddWithValue("@imie", imie);
                 cmd.Parameters.AddWithValue("@nazwisko", nazwisko);
-                cmd.Parameters.AddWithValue("@wiek", wiek);
+                cmd.Parameters.AddWithValue("@data_urodzenia", data_urodzenia);
                 cmd.Parameters.AddWithValue("@pesel", pesel);
 
                 int rowsAffected = cmd.ExecuteNonQuery();
@@ -82,7 +81,7 @@ namespace govApp
 
             ConsoleKeyInfo keyInfo;
             int selectedOption = 0;
-            string[] menuOptions = { "Logowanie", "Rejestracja", "Wejście bez logowania", "Dostępne Programy", "Moje Wnioski", "Profil", "Pomoc i Obsługa", "Wyjście" };
+            string[] menuOptions = { "Logowanie", "Rejestracja", "Wejście bez logowania", "Dostępne Programy", "Moje Wnioski", "Profil", "Pomoc i Obsługa", "Wyjście", "Wyloguj" };
             bool isLoggedIn = false;
             string username = "";
 
@@ -238,20 +237,20 @@ namespace govApp
                         string imie = Console.ReadLine();
                         Console.Write("Podaj nazwisko: ");
                         string nazwisko = Console.ReadLine();
-                        Console.Write("Podaj wiek: ");
-                        string wiek = Console.ReadLine();
+                        Console.Write("Podaj datę urodzenia: ");
+                        string data_urodzenia = Console.ReadLine();
                         Console.Write("Podaj pesel: ");
                         string pesel = Console.ReadLine();
 
                         // sprawdzamy czy pola nie są puste
-                        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(imie) || string.IsNullOrWhiteSpace(nazwisko) || string.IsNullOrWhiteSpace(wiek) || string.IsNullOrWhiteSpace(pesel))
+                        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(imie) || string.IsNullOrWhiteSpace(nazwisko) || string.IsNullOrWhiteSpace(data_urodzenia) || string.IsNullOrWhiteSpace(pesel))
                         {
                             Console.WriteLine("Wszystkie pola są wymagane. Spróbuj ponownie.");
                             Thread.Sleep(1000);
                         }
                         else
                         {
-                            if (authentication.Register(username, password, imie, nazwisko, wiek, pesel))
+                            if (authentication.Register(username, password, imie, nazwisko, data_urodzenia, pesel))
                             {
                                 Console.WriteLine();
                                 Console.WriteLine("Zarejestrowano pomyślnie!");
