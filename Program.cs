@@ -86,8 +86,8 @@ namespace govApp
             bool isLoggedIn = false;
             string username = "";
 
-            SoundPlayer scrollSound = new SoundPlayer("./sounds/scroll.wav");
-            SoundPlayer selectSound = new SoundPlayer("./sounds/select.wav");
+            //SoundPlayer //scrollSound = new SoundPlayer("./sounds/scroll.wav");
+            //SoundPlayer //selectSound = new SoundPlayer("./sounds/select.wav");
 
             string asciiArt = @"
                      ___              
@@ -280,12 +280,12 @@ namespace govApp
                 else if (keyInfo.Key == ConsoleKey.UpArrow)
                 {
                     selectedOption = Math.Max(0, selectedOption - 1);
-                    scrollSound.Play();
+                    //scrollSound.Play();
                 }
                 else if (keyInfo.Key == ConsoleKey.DownArrow)
                 {
                     selectedOption = Math.Min(2, selectedOption + 1);
-                    scrollSound.Play();
+                    //scrollSound.Play();
                 }
             }
 
@@ -316,22 +316,22 @@ namespace govApp
                     {
                         case 3:
                             Console.WriteLine("Przechodzisz do Dostępnych Programów.");
-                            selectSound.Play();
+                            //selectSound.Play();
                             // funkcja dostępnych programów
                             break;
                         case 4:
                             Console.WriteLine("Przechodzisz do Moich Wniosków.");
-                            selectSound.Play();
+                            //selectSound.Play();
                             // funkcja wniosków
                             break;
                         case 5:
                             Console.WriteLine("Przechodzisz do Profilu.");
-                            selectSound.Play();
+                            //selectSound.Play();
                             // funkcja profilu
                             break;
                         case 6:
                             Console.WriteLine("Przechodzisz do Pomocy i Obsługi.");
-                            selectSound.Play();
+                            //selectSound.Play();
                             // funkcja pomocy
                             break;
                         case 7:
@@ -346,12 +346,12 @@ namespace govApp
                 else if (keyInfo.Key == ConsoleKey.UpArrow)
                 {
                     selectedOption = Math.Max(2, selectedOption - 1);
-                    scrollSound.Play();
+                    //scrollSound.Play();
                 }
                 else if (keyInfo.Key == ConsoleKey.DownArrow)
                 {
                     selectedOption = Math.Min(menuOptions.Length - 1, selectedOption + 1);
-                    scrollSound.Play();
+                    //scrollSound.Play();
                 }
 
             } while (keyInfo.Key != ConsoleKey.Escape);
