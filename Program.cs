@@ -1,4 +1,4 @@
-﻿using System;
+﻿﻿using System;
 using System.Threading;
 using Microsoft.Data.Sqlite;
 using System.Media;
@@ -32,32 +32,31 @@ namespace govApp
                         // Porównaj wprowadzone hasło z zahaszowanym hasłem z bazy danych
                         if (BCrypt.Net.BCrypt.Verify(password, hashedPassword))
                         {
-                            // Hasła pasują, zwracamy true
+                            // true jesli hasla sie zgadzaja
                             return true;
                         }
                     }
                 }
 
-                // Hasła nie pasują lub użytkownik nie istnieje, zwracamy false
+                // false, jesli haslo sie nie zgadza lub uzytkownik nie istnieje
                 return false;
             }
         }
 
 
-        public bool Register(string username, string password, string imie, string nazwisko, string wiek, string pesel)
+        public bool Register(string username, string password, string imie, string nazwisko, string data_urodzenia, string pesel)
         {
             using (var cmd = _connection.CreateCommand())
             {
-                cmd.CommandText = "INSERT INTO users (Username, Password, Imie, Nazwisko, Wiek, Pesel) VALUES (@username, @password, @imie, @nazwisko, @wiek, @pesel)";
+                cmd.CommandText = "INSERT INTO users (Username, Password, Imie, Nazwisko, data_urodzenia, Pesel) VALUES (@username, @password, @imie, @nazwisko, @data_urodzenia, @pesel)";
                 cmd.Parameters.AddWithValue("@username", username);
 
-                // Haszowanie hasła przed zapisem do bazy danych
+                // haszowanie hasła przed zapisem do bazy danych
                 string hashedPassword = BCrypt.Net.BCrypt.HashPassword(password);
                 cmd.Parameters.AddWithValue("@password", hashedPassword);
-
                 cmd.Parameters.AddWithValue("@imie", imie);
                 cmd.Parameters.AddWithValue("@nazwisko", nazwisko);
-                cmd.Parameters.AddWithValue("@wiek", wiek);
+                cmd.Parameters.AddWithValue("@data_urodzenia", data_urodzenia);
                 cmd.Parameters.AddWithValue("@pesel", pesel);
 
                 int rowsAffected = cmd.ExecuteNonQuery();
@@ -82,20 +81,20 @@ namespace govApp
 
             ConsoleKeyInfo keyInfo;
             int selectedOption = 0;
-            string[] menuOptions = { "Logowanie", "Rejestracja", "Wejście bez logowania", "Dostępne Programy", "Moje Wnioski", "Profil", "Pomoc i Obsługa", "Wyjście" };
+            string[] menuOptions = { "Logowanie", "Rejestracja", "Wejście bez logowania", "Dostępne Programy", "Moje Wnioski", "Profil", "Pomoc i Obsługa", "Wyjście", "Wyloguj" };
             bool isLoggedIn = false;
             string username = "";
 
-            SoundPlayer scrollSound = new SoundPlayer("./sounds/scroll.wav");
-            SoundPlayer selectSound = new SoundPlayer("./sounds/select.wav");
+            //SoundPlayer //scrollSound = new SoundPlayer("./sounds/scroll.wav");
+            //SoundPlayer //selectSound = new SoundPlayer("./sounds/select.wav");
 
             string asciiArt = @"
-                     ___              
-   ____ _____ _   __/   |  ____  ____ 
-  / __ `/ __ \ | / / /| | / __ \/ __ \
- / /_/ / /_/ / |/ / ___ |/ /_/ / /_/ /
- \__, /\____/|___/_/  |_/ .___/ .___/ 
-/____/                 /_/   /_/      
+                    _                
+   __ _  _____   __/ \   _ __  _ __  
+  / _` |/ _ \ \ / / _ \ | '_ \| '_ \ 
+ | (_| | (_) \ V / ___ \| |_) | |_) |
+  \__, |\___/ \_/_/   \_\ .__/| .__/ 
+  |___/                 |_|   |_|    
         ";
             Console.WriteLine(asciiArt);
             Console.WriteLine();
@@ -126,7 +125,7 @@ namespace govApp
                     ctx.Spinner(Spinner.Known.Star);
                     ctx.SpinnerStyle(Style.Parse("green"));
 
-                    // Symulacja
+                    // symulacja
                     AnsiConsole.MarkupLine("Ładuje...");
                     Thread.Sleep(3000);
                 });
@@ -238,20 +237,20 @@ namespace govApp
                         string imie = Console.ReadLine();
                         Console.Write("Podaj nazwisko: ");
                         string nazwisko = Console.ReadLine();
-                        Console.Write("Podaj wiek: ");
-                        string wiek = Console.ReadLine();
+                        Console.Write("Podaj datę urodzenia: ");
+                        string data_urodzenia = Console.ReadLine();
                         Console.Write("Podaj pesel: ");
                         string pesel = Console.ReadLine();
 
                         // sprawdzamy czy pola nie są puste
-                        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(imie) || string.IsNullOrWhiteSpace(nazwisko) || string.IsNullOrWhiteSpace(wiek) || string.IsNullOrWhiteSpace(pesel))
+                        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(imie) || string.IsNullOrWhiteSpace(nazwisko) || string.IsNullOrWhiteSpace(data_urodzenia) || string.IsNullOrWhiteSpace(pesel))
                         {
                             Console.WriteLine("Wszystkie pola są wymagane. Spróbuj ponownie.");
                             Thread.Sleep(1000);
                         }
                         else
                         {
-                            if (authentication.Register(username, password, imie, nazwisko, wiek, pesel))
+                            if (authentication.Register(username, password, imie, nazwisko, data_urodzenia, pesel))
                             {
                                 Console.WriteLine();
                                 Console.WriteLine("Zarejestrowano pomyślnie!");
@@ -280,12 +279,12 @@ namespace govApp
                 else if (keyInfo.Key == ConsoleKey.UpArrow)
                 {
                     selectedOption = Math.Max(0, selectedOption - 1);
-                    scrollSound.Play();
+                    //scrollSound.Play();
                 }
                 else if (keyInfo.Key == ConsoleKey.DownArrow)
                 {
                     selectedOption = Math.Min(2, selectedOption + 1);
-                    scrollSound.Play();
+                    //scrollSound.Play();
                 }
             }
 
@@ -316,22 +315,22 @@ namespace govApp
                     {
                         case 3:
                             Console.WriteLine("Przechodzisz do Dostępnych Programów.");
-                            selectSound.Play();
+                            //selectSound.Play();
                             // funkcja dostępnych programów
                             break;
                         case 4:
                             Console.WriteLine("Przechodzisz do Moich Wniosków.");
-                            selectSound.Play();
+                            //selectSound.Play();
                             // funkcja wniosków
                             break;
                         case 5:
                             Console.WriteLine("Przechodzisz do Profilu.");
-                            selectSound.Play();
+                            //selectSound.Play();
                             // funkcja profilu
                             break;
                         case 6:
                             Console.WriteLine("Przechodzisz do Pomocy i Obsługi.");
-                            selectSound.Play();
+                            //selectSound.Play();
                             // funkcja pomocy
                             break;
                         case 7:
@@ -346,12 +345,12 @@ namespace govApp
                 else if (keyInfo.Key == ConsoleKey.UpArrow)
                 {
                     selectedOption = Math.Max(2, selectedOption - 1);
-                    scrollSound.Play();
+                    //scrollSound.Play();
                 }
                 else if (keyInfo.Key == ConsoleKey.DownArrow)
                 {
                     selectedOption = Math.Min(menuOptions.Length - 1, selectedOption + 1);
-                    scrollSound.Play();
+                    //scrollSound.Play();
                 }
 
             } while (keyInfo.Key != ConsoleKey.Escape);
