@@ -6,8 +6,7 @@ Organizacja:
 
 Baza danych:
 
-- panel phpmyadmin
-- xampp (serwer apache i mysql)
+- SQLite
 - nazwa bazy "govapp"
 - tabele przechowywać będą dane logowania i programów (projektów)
 
