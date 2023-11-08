@@ -29,7 +29,7 @@ namespace govApp
                     {
                         string hashedPassword = reader["Password"].ToString();
 
-                        // Porównaj wprowadzone hasło z zahaszowanym hasłem z bazy danych
+                        // porównanie wprowadzonego hasła z zahaszowanym hasłem z bazy danych
                         if (BCrypt.Net.BCrypt.Verify(password, hashedPassword))
                         {
                             // true jesli hasla sie zgadzaja
@@ -37,7 +37,6 @@ namespace govApp
                         }
                     }
                 }
-
                 // false, jesli haslo sie nie zgadza lub uzytkownik nie istnieje
                 return false;
             }
@@ -77,26 +76,18 @@ namespace govApp
             dbConnector.OpenConnection();
             Authentication authentication = new Authentication(dbConnector.GetConnection());
 
-            new Style(foreground: Color.Maroon);
-
             ConsoleKeyInfo keyInfo;
             int selectedOption = 0;
-            string[] menuOptions = { "Logowanie", "Rejestracja", "Wejście bez logowania", "Dostępne Programy", "Moje Wnioski", "Profil", "Pomoc i Obsługa", "Wyjście", "Wyloguj" };
+            string[] menuOptions = { "Dostępne Programy", "Moje Wnioski", "Profil", "Pomoc i Obsługa", "Wyjście", "Wyloguj" };
+            string[] loginOptions = { "Logowanie", "Rejestracja", "Wejście bez logowania" };
             bool isLoggedIn = false;
             string username = "";
+
+            Console.ForegroundColor = ConsoleColor.Yellow;
 
             //SoundPlayer //scrollSound = new SoundPlayer("./sounds/scroll.wav");
             //SoundPlayer //selectSound = new SoundPlayer("./sounds/select.wav");
 
-            string asciiArt = @"
-                    _                
-   __ _  _____   __/ \   _ __  _ __  
-  / _` |/ _ \ \ / / _ \ | '_ \| '_ \ 
- | (_| | (_) \ V / ___ \| |_) | |_) |
-  \__, |\___/ \_/_/   \_\ .__/| .__/ 
-  |___/                 |_|   |_|    
-        ";
-            Console.WriteLine(asciiArt);
             Console.WriteLine();
             Console.WriteLine("===========================================");
             Console.WriteLine();
@@ -133,7 +124,7 @@ namespace govApp
             while (!isLoggedIn)
             {
                 Console.Clear();
-                Console.WriteLine(asciiArt);
+                Console.ForegroundColor = ConsoleColor.Yellow;
                 Console.WriteLine();
                 Console.WriteLine("===========================================");
                 Console.WriteLine();
@@ -142,13 +133,13 @@ namespace govApp
                 Console.WriteLine("Aby skorzystać z naszej aplikacji prosimy o wybraniu opcji logowania.");
                 Console.WriteLine("Proszę wybrać jedną opcję:");
                 Console.WriteLine();
-                for (int i = 0; i < 3; i++)
+                for (int i = 0; i < loginOptions.Length; i++)
                 {
                     if (i == selectedOption)
                     {
                         Console.Write(">> ");
                     }
-                    Console.WriteLine($"{i + 1}. {menuOptions[i]}");
+                    Console.WriteLine($"{i + 1}. {loginOptions[i]}");
                 }
 
                 keyInfo = Console.ReadKey();
@@ -157,9 +148,10 @@ namespace govApp
                     if (selectedOption == 0)
                     {
                         Console.Clear();
+                        Console.ForegroundColor = ConsoleColor.Yellow;
                         Console.WriteLine("Logowanie:");
                         Console.Write("Podaj nazwę użytkownika: ");
-                        username = Console.ReadLine();
+                        username = Console.ReadLine().Trim(); //usuwanie bialych znakow na poczatku i koncu
                         Console.Write("Podaj hasło: ");
                         string password = "";
                         while (true)
@@ -205,9 +197,10 @@ namespace govApp
                     else if (selectedOption == 1)
                     {
                         Console.Clear();
+                        Console.ForegroundColor = ConsoleColor.Yellow;
                         Console.WriteLine("Rejestracja:");
                         Console.Write("Podaj nazwę użytkownika: ");
-                        username = Console.ReadLine();
+                        username = Console.ReadLine().Trim(); //usuwanie bialych znakow na poczatku i koncu
                         Console.Write("Podaj hasło: ");
                         string password = "";
                         while (true)
@@ -229,7 +222,7 @@ namespace govApp
                             else
                             {
                                 password += key.KeyChar;
-                                Console.Write("*"); // zamiana znakow na gwiazdke
+                                Console.Write("*"); // zamiana znaków na gwiazdki
                             }
                         }
                         Console.WriteLine();
@@ -237,15 +230,29 @@ namespace govApp
                         string imie = Console.ReadLine();
                         Console.Write("Podaj nazwisko: ");
                         string nazwisko = Console.ReadLine();
-                        Console.Write("Podaj datę urodzenia: ");
+                        Console.Write("Podaj datę urodzenia (dd.mm.yyyy): ");
                         string data_urodzenia = Console.ReadLine();
-                        Console.Write("Podaj pesel: ");
-                        string pesel = Console.ReadLine();
 
-                        // sprawdzamy czy pola nie są puste
-                        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(imie) || string.IsNullOrWhiteSpace(nazwisko) || string.IsNullOrWhiteSpace(data_urodzenia) || string.IsNullOrWhiteSpace(pesel))
+                        string pesel = "";
+                        do
                         {
-                            Console.WriteLine("Wszystkie pola są wymagane. Spróbuj ponownie.");
+                            Console.Write("Podaj pesel: ");
+                            pesel = Console.ReadLine();
+
+                            if (pesel.Length != 11)
+                            {
+                                Console.WriteLine("Numer PESEL musi składać się z dokładnie 11 cyfr. Spróbuj ponownie.");
+                            }
+                        } while (pesel.Length != 11);
+
+                        Console.Write("Czy zgadzasz się na przetwarzanie swoich danych osobowych? (Tak/Nie): ");
+                        string consent = Console.ReadLine();
+                        bool agreedToProcessing = consent.Trim().Equals("Tak", StringComparison.OrdinalIgnoreCase);
+
+                        // sprawdzamy czy pola nie są puste i czy użytkownik wyraził zgodę
+                        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(imie) || string.IsNullOrWhiteSpace(nazwisko) || string.IsNullOrWhiteSpace(data_urodzenia) || string.IsNullOrWhiteSpace(pesel) || !agreedToProcessing)
+                        {
+                            Console.WriteLine("Wszystkie pola są wymagane, a także musisz wyrazić zgodę na przetwarzanie danych. Spróbuj ponownie.");
                             Thread.Sleep(1000);
                         }
                         else
@@ -271,6 +278,7 @@ namespace govApp
                         // wejście bez logowania
                         isLoggedIn = true; // użytkownik zalogowany, nie mając konta
                         username = "Gość"; // domyślna nazwa użytkownika dla wejścia bez logowania
+                        selectedOption = 0;
                     }
 
                     Console.WriteLine("Naciśnij dowolny klawisz, aby kontynuować...");
@@ -292,19 +300,19 @@ namespace govApp
             do
             {
                 Console.Clear();
-                Console.WriteLine(asciiArt);
+                Console.ForegroundColor = ConsoleColor.Yellow;
                 Console.WriteLine();
                 Console.WriteLine("===========================================");
                 Console.WriteLine();
                 Console.WriteLine($"Zalogowano jako: {username}");
                 Console.WriteLine();
-                for (int i = 3; i < menuOptions.Length; i++)
+                for (int i = 0; i < menuOptions.Length; i++)
                 {
                     if (i == selectedOption)
                     {
                         Console.Write(">> ");
                     }
-                    Console.WriteLine($"{i - 3 + 1}. {menuOptions[i]}");
+                    Console.WriteLine($"{i + 1}. {menuOptions[i]}");
                 }
 
                 keyInfo = Console.ReadKey();
@@ -313,27 +321,27 @@ namespace govApp
                 {
                     switch (selectedOption)
                     {
-                        case 3:
+                        case 0:
                             Console.WriteLine("Przechodzisz do Dostępnych Programów.");
                             //selectSound.Play();
                             // funkcja dostępnych programów
                             break;
-                        case 4:
+                        case 1:
                             Console.WriteLine("Przechodzisz do Moich Wniosków.");
                             //selectSound.Play();
                             // funkcja wniosków
                             break;
-                        case 5:
+                        case 2:
                             Console.WriteLine("Przechodzisz do Profilu.");
                             //selectSound.Play();
                             // funkcja profilu
                             break;
-                        case 6:
+                        case 3:
                             Console.WriteLine("Przechodzisz do Pomocy i Obsługi.");
                             //selectSound.Play();
                             // funkcja pomocy
                             break;
-                        case 7:
+                        case 4:
                             Console.WriteLine("Zamykanie aplikacji.");
                             return;
                     }
@@ -344,7 +352,7 @@ namespace govApp
                 }
                 else if (keyInfo.Key == ConsoleKey.UpArrow)
                 {
-                    selectedOption = Math.Max(2, selectedOption - 1);
+                    selectedOption = Math.Max(0, selectedOption - 1);
                     //scrollSound.Play();
                 }
                 else if (keyInfo.Key == ConsoleKey.DownArrow)
@@ -352,7 +360,6 @@ namespace govApp
                     selectedOption = Math.Min(menuOptions.Length - 1, selectedOption + 1);
                     //scrollSound.Play();
                 }
-
             } while (keyInfo.Key != ConsoleKey.Escape);
         }
     }
