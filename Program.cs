@@ -17,7 +17,6 @@ namespace govApp
         public string Data_zakonczenia { get; set; }
         public string Osoba_odpowiedzialna { get; set; }
         public string Kategoria_programu { get; set; }
-        // Dodaj inne pola, jeśli istnieją
     }
     public class Authentication
     {
@@ -99,13 +98,11 @@ namespace govApp
                             Data_zakonczenia = reader["Data_zakonczenia"].ToString(),
                             Osoba_odpowiedzialna = reader["Osoba_odpowiedzialna"].ToString(),
                             Kategoria_programu = reader["Kategoria_programu"].ToString(),
-                            // Dodaj inne pola z bazy danych
                         };
                         projects.Add(project);
                     }
                 }
             }
-
             return projects;
         }
 
