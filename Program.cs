@@ -7,6 +7,18 @@ using BCrypt.Net;
 
 namespace govApp
 {
+    public class Project
+    {
+        public int Id_programu { get; set; }
+        public string Nazwa_programu { get; set; }
+        public string Opis_programu { get; set; }
+        public string Fundusz { get; set; }
+        public string Data_rozpoczecia { get; set; }
+        public string Data_zakonczenia { get; set; }
+        public string Osoba_odpowiedzialna { get; set; }
+        public string Kategoria_programu { get; set; }
+        // Dodaj inne pola, jeśli istnieją
+    }
     public class Authentication
     {
         private SqliteConnection _connection;
@@ -63,6 +75,38 @@ namespace govApp
                 // zwracamy true jeśli użytkownik został dodany poprawnie
                 return rowsAffected > 0;
             }
+        }
+
+
+        public List<Project> GetAvailableProjects(SqliteConnection connection)
+        {
+            List<Project> projects = new List<Project>();
+
+            using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = "SELECT * FROM programs";
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        Project project = new Project
+                        {
+                            Id_programu = Convert.ToInt32(reader["Id_programu"]),
+                            Nazwa_programu = reader["Nazwa_programu"].ToString(),
+                            Opis_programu = reader["Opis_programu"].ToString(),
+                            Fundusz = reader["Fundusz"].ToString(),
+                            Data_rozpoczecia = reader["Data_rozpoczecia"].ToString(),
+                            Data_zakonczenia = reader["Data_zakonczenia"].ToString(),
+                            Osoba_odpowiedzialna = reader["Osoba_odpowiedzialna"].ToString(),
+                            Kategoria_programu = reader["Kategoria_programu"].ToString(),
+                            // Dodaj inne pola z bazy danych
+                        };
+                        projects.Add(project);
+                    }
+                }
+            }
+
+            return projects;
         }
 
     }
@@ -325,7 +369,69 @@ namespace govApp
                             Console.WriteLine("Przechodzisz do Dostępnych Programów.");
                             //selectSound.Play();
                             // funkcja dostępnych programów
+
+                            List<Project> availableProjects = authentication.GetAvailableProjects(dbConnector.GetConnection());
+
+                            // wyswietlenie dostępnych programów
+                            int projectOption = 0;
+                            int visibleProjects = Math.Min(Console.WindowHeight - 8, availableProjects.Count);
+
+                            while (true)
+                            {
+                                Console.Clear();
+                                Console.WriteLine("Wybierz numer programu: ");
+                                int startIndex = Math.Max(0, projectOption - (visibleProjects - 1));
+                                int endIndex = Math.Min(availableProjects.Count - 1, startIndex + visibleProjects - 1);
+
+                                for (int i = startIndex; i <= endIndex; i++)
+                                {
+                                    if (i == projectOption)
+                                    {
+                                        Console.Write(">> ");
+                                    }
+                                    Console.WriteLine($"{i + 1}. {availableProjects[i].Nazwa_programu}");
+                                }
+
+                                ConsoleKeyInfo projectKeyInfo = Console.ReadKey();
+                                if (projectKeyInfo.Key == ConsoleKey.Enter)
+                                {
+                                    if (projectOption >= 0 && projectOption < availableProjects.Count)
+                                    {
+                                        Console.Clear();
+                                        // po wybraniu projektu wyswietla jego szczegoly
+                                        Project selectedProject = availableProjects[projectOption];
+                                        Console.WriteLine($"Nazwa programu: {selectedProject.Nazwa_programu} \n");
+                                        Console.WriteLine($"Opis programu: {selectedProject.Opis_programu} \n");
+                                        Console.WriteLine($"Fundusz: {selectedProject.Fundusz} \n");
+                                        Console.WriteLine($"Data rozpoczęcia programu: {selectedProject.Data_rozpoczecia} \n");
+                                        Console.WriteLine($"Data zakończenia programu: {selectedProject.Data_zakonczenia} \n");
+                                        Console.WriteLine($"Osoba odpowiedzialna: {selectedProject.Osoba_odpowiedzialna} \n");
+                                        Console.WriteLine($"Kategoria programu: {selectedProject.Kategoria_programu} \n");
+                                        break;
+                                    }
+                                    else if (projectOption == -1) // -1 oznacza powrót do głównego menu
+                                    {
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("Nieprawidłowy wybór. Spróbuj ponownie.");
+                                    }
+                                }
+                                else if (projectKeyInfo.Key == ConsoleKey.UpArrow)
+                                {
+                                    projectOption = Math.Max(0, projectOption - 1);
+                                    //scrollSound.Play();
+                                }
+                                else if (projectKeyInfo.Key == ConsoleKey.DownArrow)
+                                {
+                                    projectOption = Math.Min(availableProjects.Count - 1, projectOption + 1);
+                                    //scrollSound.Play();
+                                }
+                            }
                             break;
+
+
                         case 1:
                             Console.WriteLine("Przechodzisz do Moich Wniosków.");
                             //selectSound.Play();
