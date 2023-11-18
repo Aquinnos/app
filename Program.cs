@@ -18,8 +18,41 @@ namespace govApp
         public string Osoba_odpowiedzialna { get; set; }
         public string Kategoria_programu { get; set; }
     }
+
+    public class UserProfile
+    {
+        public string Imie { get; set; }
+        public string Nazwisko { get; set; }
+        public string DataUrodzenia { get; set; }
+        public string Pesel { get; set; }
+    }
+
     public class Authentication
     {
+        public UserProfile GetUserProfile(string username)
+        {
+            using (var cmd = _connection.CreateCommand())
+            {
+                cmd.CommandText = "SELECT Imie, Nazwisko, data_urodzenia, Pesel FROM users WHERE Username = @username";
+                cmd.Parameters.AddWithValue("@username", username);
+
+                using (var reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        return new UserProfile
+                        {
+                            Imie = reader["Imie"].ToString(),
+                            Nazwisko = reader["Nazwisko"].ToString(),
+                            DataUrodzenia = reader["data_urodzenia"].ToString(),
+                            Pesel = reader["Pesel"].ToString()
+                        };
+                    }
+                }
+            }
+
+            return null;
+        }
         private SqliteConnection _connection;
 
         public Authentication(SqliteConnection connection)
@@ -76,6 +109,64 @@ namespace govApp
             }
         }
 
+        public bool ChangePassword(string username, string oldPassword, string newPassword)
+        {
+            // Pobierz hasło z bazy danych na podstawie nazwy użytkownika
+            using (var cmd = _connection.CreateCommand())
+            {
+                cmd.CommandText = "SELECT Password FROM users WHERE Username = @username";
+                cmd.Parameters.AddWithValue("@username", username);
+
+                using (var reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        string hashedPassword = reader["Password"].ToString();
+
+                        // Sprawdź, czy stare hasło jest poprawne
+                        if (BCrypt.Net.BCrypt.Verify(oldPassword, hashedPassword))
+                        {
+                            // Haszuj i zaktualizuj nowe hasło w bazie danych
+                            string newHashedPassword = BCrypt.Net.BCrypt.HashPassword(newPassword);
+                            using (var updateCmd = _connection.CreateCommand())
+                            {
+                                updateCmd.CommandText = "UPDATE users SET Password = @newPassword WHERE Username = @username";
+                                updateCmd.Parameters.AddWithValue("@newPassword", newHashedPassword);
+                                updateCmd.Parameters.AddWithValue("@username", username);
+
+                                int rowsAffected = updateCmd.ExecuteNonQuery();
+
+                                // Zwróć true, jeśli hasło zostało zaktualizowane
+                                return rowsAffected > 0;
+                            }
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+
+        public bool AddNewProject(Project project)
+        {
+            using (var cmd = _connection.CreateCommand())
+            {
+                cmd.CommandText = "INSERT INTO programs (Nazwa_programu, Opis_programu, Fundusz, Data_rozpoczecia, Data_zakonczenia, Osoba_odpowiedzialna, Kategoria_programu) VALUES (@nazwa, @opis, @fundusz, @rozpoczecie, @zakonczenie, @odpowiedzialna, @kategoria)";
+                cmd.Parameters.AddWithValue("@nazwa", project.Nazwa_programu);
+                cmd.Parameters.AddWithValue("@opis", project.Opis_programu);
+                cmd.Parameters.AddWithValue("@fundusz", project.Fundusz);
+                cmd.Parameters.AddWithValue("@rozpoczecie", project.Data_rozpoczecia);
+                cmd.Parameters.AddWithValue("@zakonczenie", project.Data_zakonczenia);
+                cmd.Parameters.AddWithValue("@odpowiedzialna", project.Osoba_odpowiedzialna);
+                cmd.Parameters.AddWithValue("@kategoria", project.Kategoria_programu);
+
+                int rowsAffected = cmd.ExecuteNonQuery();
+
+                // Zwracamy true, jeśli projekt został dodany poprawnie
+                return rowsAffected > 0;
+            }
+        }
+
 
         public List<Project> GetAvailableProjects(SqliteConnection connection)
         {
@@ -119,7 +210,7 @@ namespace govApp
 
             ConsoleKeyInfo keyInfo;
             int selectedOption = 0;
-            string[] menuOptions = { "Dostępne Programy", "Moje Wnioski", "Profil", "Pomoc i Obsługa", "Wyjście", "Wyloguj" };
+            string[] menuOptions = { "Dostępne Programy", "Dodaj wniosek", "Profil", "Pomoc i Obsługa", "Wyjście", "Wyloguj" };
             string[] loginOptions = { "Logowanie", "Rejestracja", "Wejście bez logowania" };
             bool isLoggedIn = false;
             string username = "";
@@ -430,14 +521,149 @@ namespace govApp
 
 
                         case 1:
+                             // funkcja wniosków
+                            if(username == "Gość") {
+                                Console.WriteLine("Nie masz uprawnień do dodawania wniosków. Zaloguj się aby móc dodać nowy wniosek.");
+                                Console.ReadKey();
+                                break;
+                            }
                             Console.WriteLine("Przechodzisz do Moich Wniosków.");
-                            //selectSound.Play();
-                            // funkcja wniosków
+                            Console.Clear();
+
+                            Console.WriteLine("Dodawanie nowego projektu:");
+                            Console.Write("Podaj nazwę projektu: ");
+                            string nazwaProjektu = Console.ReadLine();
+                            Console.Write("Podaj opis projektu: ");
+                            string opisProjektu = Console.ReadLine();
+                            Console.Write("Jaki masz fundusz: ");
+                            string fundusz = Console.ReadLine();
+                            Console.Write("Kiedy zaczynają się zapisy na program? (dd.mm.yyyy): ");
+                            string dataRozpoczecia = Console.ReadLine();
+                            Console.Write("Kiedy kończą się zapisy na program? (dd.mm.yyyy): ");
+                            string dataZakonczenia = Console.ReadLine();
+                            Console.Write("Kto jest odpowiedzialny za program?: ");
+                            string osobaOpowiedzialna = Console.ReadLine();
+                            Console.Write("Podaj kategorię programu: ");
+                            string kategoria = Console.ReadLine();
+                            // Podobnie pobierz pozostałe dane dla nowego projektu
+
+                            Project newProject = new Project
+                            {
+                                Nazwa_programu = nazwaProjektu,
+                                Opis_programu = opisProjektu,
+                                Fundusz = fundusz,
+                                Data_rozpoczecia = dataRozpoczecia,
+                                Data_zakonczenia = dataZakonczenia,
+                                Osoba_odpowiedzialna = osobaOpowiedzialna,
+                                Kategoria_programu = kategoria,
+                                // Dodaj pozostałe właściwości nowego projektu
+                            };
+
+                            if (authentication.AddNewProject(newProject))
+                            {
+                                Console.WriteLine();
+                                Console.WriteLine("Nowy projekt został dodany!");
+                                Console.WriteLine();
+                                Thread.Sleep(1000);
+                            }
+                            else
+                            {
+                                Console.WriteLine();
+                                Console.WriteLine("Błąd dodawania nowego projektu. Spróbuj ponownie.");
+                                Console.WriteLine();
+                                Thread.Sleep(1000);
+                            }
                             break;
                         case 2:
                             Console.WriteLine("Przechodzisz do Profilu.");
                             //selectSound.Play();
                             // funkcja profilu
+                            Console.Clear();
+                            Console.WriteLine($"Nazwa użytkownika: {username}");
+                            Console.WriteLine();
+                            var userProfile = authentication.GetUserProfile(username);
+
+                            if (userProfile != null)
+                            {
+                                Console.Clear();
+                                Console.WriteLine($"Nazwa użytkownika: {username}");
+                                Console.WriteLine($"Imię: {userProfile.Imie}");
+                                Console.WriteLine($"Nazwisko: {userProfile.Nazwisko}");
+                                Console.WriteLine($"Data urodzenia: {userProfile.DataUrodzenia}");
+                                Console.WriteLine($"PESEL: {userProfile.Pesel}");
+                                Console.WriteLine();
+                                Console.WriteLine("Naciśnij enter aby zmienić hasło.");
+                                Console.WriteLine();
+                                Console.WriteLine("Naciśnij escape aby wyjść.");
+                                if (Console.ReadKey().Key == ConsoleKey.Escape)
+                                {
+                                    break; // wyjście z funkcji profilu.
+                                }
+                                while (Console.ReadKey().Key != ConsoleKey.Enter)
+                                {
+                                    Console.Clear();
+                                    Console.Write("Podaj aktualne hasło: ");
+                                    string oldPassword = "";
+                                    while (true)
+                                    {
+                                        ConsoleKeyInfo key = Console.ReadKey(true);
+
+                                        if (key.Key == ConsoleKey.Enter)
+                                        {
+                                            break;
+                                        }
+                                        else if (key.Key == ConsoleKey.Backspace)
+                                        {
+                                            if (oldPassword.Length > 0)
+                                            {
+                                                oldPassword = oldPassword.Substring(0, oldPassword.Length - 1);
+                                                Console.Write("\b \b");
+                                            }
+                                        }
+                                        else
+                                        {
+                                            oldPassword += key.KeyChar;
+                                            Console.Write("*");
+                                        }
+                                    }
+                                    Console.WriteLine();
+                                    Console.Write("Podaj nowe hasło: ");
+                                    string newPassword = "";
+                                    while (true)
+                                    {
+                                        ConsoleKeyInfo key = Console.ReadKey(true);
+
+                                        if (key.Key == ConsoleKey.Enter)
+                                        {
+                                            break;
+                                        }
+                                        else if (key.Key == ConsoleKey.Backspace)
+                                        {
+                                            if (newPassword.Length > 0)
+                                            {
+                                                newPassword = newPassword.Substring(0, newPassword.Length - 1);
+                                                Console.Write("\b \b");
+                                            }
+                                        }
+                                        else
+                                        {
+                                            newPassword += key.KeyChar;
+                                            Console.Write("*");
+                                        }
+                                    }
+                                    if (authentication.ChangePassword(username, oldPassword, newPassword))
+                                    {
+                                        Console.Clear();
+                                        Console.WriteLine("Hasło zostało pomyślnie zmienione.");
+                                    }
+                                    else
+                                    {
+                                        Console.Clear();
+                                        Console.WriteLine("Błąd podczas zmiany hasła. Spróbuj ponownie.");
+                                    }
+
+                                }
+                            }
                             break;
                         case 3:
                             Console.WriteLine("Przechodzisz do Pomocy i Obsługi.");
@@ -447,6 +673,12 @@ namespace govApp
                         case 4:
                             Console.WriteLine("Zamykanie aplikacji.");
                             return;
+                        case 5:
+                            // wylogowanie uzytkownika
+                            isLoggedIn = false;
+                            username = "";
+                            selectedOption = 0;
+                            break;
                     }
 
                     Console.WriteLine();
