@@ -215,10 +215,7 @@ namespace govApp
             bool isLoggedIn = false;
             string username = "";
 
-            Console.ForegroundColor = ConsoleColor.Yellow;
-
-            //SoundPlayer //scrollSound = new SoundPlayer("./sounds/scroll.wav");
-            //SoundPlayer //selectSound = new SoundPlayer("./sounds/select.wav");
+            Console.ForegroundColor = ConsoleColor.Yellow; //kolor czcionki
 
             Console.WriteLine();
             Console.WriteLine("===========================================");
@@ -255,176 +252,182 @@ namespace govApp
 
             while (!isLoggedIn)
             {
-                Console.Clear();
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine();
-                Console.WriteLine("===========================================");
-                Console.WriteLine();
-                Console.WriteLine("Witamy w oknie logowania.");
-                Console.WriteLine();
-                Console.WriteLine("Aby skorzystać z naszej aplikacji prosimy o wybraniu opcji logowania.");
-                Console.WriteLine("Proszę wybrać jedną opcję:");
-                Console.WriteLine();
-                for (int i = 0; i < loginOptions.Length; i++)
-                {
-                    if (i == selectedOption)
-                    {
-                        Console.Write(">> ");
-                    }
-                    Console.WriteLine($"{i + 1}. {loginOptions[i]}");
-                }
+                LoginScreen();
+            }
 
-                keyInfo = Console.ReadKey();
-                if (keyInfo.Key == ConsoleKey.Enter)
+            void LoginScreen()
+            {
+                while (!isLoggedIn)
                 {
-                    if (selectedOption == 0)
+                    Console.Clear();
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine();
+                    Console.WriteLine("===========================================");
+                    Console.WriteLine();
+                    Console.WriteLine("Witamy w oknie logowania.");
+                    Console.WriteLine();
+                    Console.WriteLine("Aby skorzystać z naszej aplikacji prosimy o wybraniu opcji logowania.");
+                    Console.WriteLine("Proszę wybrać jedną opcję:");
+                    Console.WriteLine();
+                    for (int i = 0; i < loginOptions.Length; i++)
                     {
-                        Console.Clear();
-                        Console.ForegroundColor = ConsoleColor.Yellow;
-                        Console.WriteLine("Logowanie:");
-                        Console.Write("Podaj nazwę użytkownika: ");
-                        username = Console.ReadLine().Trim(); //usuwanie bialych znakow na poczatku i koncu
-                        Console.Write("Podaj hasło: ");
-                        string password = "";
-                        while (true)
+                        if (i == selectedOption)
                         {
-                            ConsoleKeyInfo key = Console.ReadKey(true);
+                            Console.Write(">> ");
+                        }
+                        Console.WriteLine($"{i + 1}. {loginOptions[i]}");
+                    }
 
-                            if (key.Key == ConsoleKey.Enter)
+                    keyInfo = Console.ReadKey();
+                    if (keyInfo.Key == ConsoleKey.Enter)
+                    {
+                        if (selectedOption == 0)
+                        {
+                            Console.Clear();
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("Logowanie:");
+                            Console.Write("Podaj nazwę użytkownika: ");
+                            username = Console.ReadLine().Trim().ToLower(); //usuwanie bialych znakow na poczatku i koncu
+                            Console.Write("Podaj hasło: ");
+                            string password = "";
+                            while (true)
                             {
-                                break;
-                            }
-                            else if (key.Key == ConsoleKey.Backspace)
-                            {
-                                if (password.Length > 0)
+                                ConsoleKeyInfo key = Console.ReadKey(true);
+
+                                if (key.Key == ConsoleKey.Enter)
                                 {
-                                    password = password.Substring(0, password.Length - 1);
-                                    Console.Write("\b \b"); // usuwamy ostatni znak i przesuwamy kursor w lewo
+                                    break;
+                                }
+                                else if (key.Key == ConsoleKey.Backspace)
+                                {
+                                    if (password.Length > 0)
+                                    {
+                                        password = password.Substring(0, password.Length - 1);
+                                        Console.Write("\b \b"); // usuwamy ostatni znak i przesuwamy kursor w lewo
+                                    }
+                                }
+                                else
+                                {
+                                    password += key.KeyChar;
+                                    Console.Write("*"); // zamiana znakow na gwiazdke
                                 }
                             }
-                            else
-                            {
-                                password += key.KeyChar;
-                                Console.Write("*"); // zamiana znakow na gwiazdke
-                            }
-                        }
 
-                        Console.WriteLine();
-                        if (authentication.Login(username, password))
-                        {
-                            isLoggedIn = true;
                             Console.WriteLine();
-                            Console.WriteLine("Zalogowano pomyślnie!");
-                            Console.WriteLine();
-                            Thread.Sleep(1000);
-                        }
-                        else
-                        {
-                            Console.WriteLine();
-                            Console.WriteLine("Błąd logowania. Spróbuj ponownie.");
-                            Console.WriteLine();
-                            Thread.Sleep(1000);
-                        }
-                    }
-                    else if (selectedOption == 1)
-                    {
-                        Console.Clear();
-                        Console.ForegroundColor = ConsoleColor.Yellow;
-                        Console.WriteLine("Rejestracja:");
-                        Console.Write("Podaj nazwę użytkownika: ");
-                        username = Console.ReadLine().Trim(); //usuwanie bialych znakow na poczatku i koncu
-                        Console.Write("Podaj hasło: ");
-                        string password = "";
-                        while (true)
-                        {
-                            ConsoleKeyInfo key = Console.ReadKey(true);
-
-                            if (key.Key == ConsoleKey.Enter)
+                            if (authentication.Login(username, password))
                             {
-                                break;
-                            }
-                            else if (key.Key == ConsoleKey.Backspace)
-                            {
-                                if (password.Length > 0)
-                                {
-                                    password = password.Substring(0, password.Length - 1);
-                                    Console.Write("\b \b"); // usuwamy ostatni znak i przesuwamy kursor w lewo
-                                }
-                            }
-                            else
-                            {
-                                password += key.KeyChar;
-                                Console.Write("*"); // zamiana znaków na gwiazdki
-                            }
-                        }
-                        Console.WriteLine();
-                        Console.Write("Podaj imię: ");
-                        string imie = Console.ReadLine();
-                        Console.Write("Podaj nazwisko: ");
-                        string nazwisko = Console.ReadLine();
-                        Console.Write("Podaj datę urodzenia (dd.mm.yyyy): ");
-                        string data_urodzenia = Console.ReadLine();
-
-                        string pesel = "";
-                        do
-                        {
-                            Console.Write("Podaj pesel: ");
-                            pesel = Console.ReadLine();
-
-                            if (pesel.Length != 11)
-                            {
-                                Console.WriteLine("Numer PESEL musi składać się z dokładnie 11 cyfr. Spróbuj ponownie.");
-                            }
-                        } while (pesel.Length != 11);
-
-                        Console.Write("Czy zgadzasz się na przetwarzanie swoich danych osobowych? (Tak/Nie): ");
-                        string consent = Console.ReadLine();
-                        bool agreedToProcessing = consent.Trim().Equals("Tak", StringComparison.OrdinalIgnoreCase);
-
-                        // sprawdzamy czy pola nie są puste i czy użytkownik wyraził zgodę
-                        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(imie) || string.IsNullOrWhiteSpace(nazwisko) || string.IsNullOrWhiteSpace(data_urodzenia) || string.IsNullOrWhiteSpace(pesel) || !agreedToProcessing)
-                        {
-                            Console.WriteLine("Wszystkie pola są wymagane, a także musisz wyrazić zgodę na przetwarzanie danych. Spróbuj ponownie.");
-                            Thread.Sleep(1000);
-                        }
-                        else
-                        {
-                            if (authentication.Register(username, password, imie, nazwisko, data_urodzenia, pesel))
-                            {
+                                isLoggedIn = true;
                                 Console.WriteLine();
-                                Console.WriteLine("Zarejestrowano pomyślnie!");
+                                Console.WriteLine("Zalogowano pomyślnie!");
                                 Console.WriteLine();
                                 Thread.Sleep(1000);
                             }
                             else
                             {
                                 Console.WriteLine();
-                                Console.WriteLine("Błąd rejestracji. Spróbuj ponownie.");
+                                Console.WriteLine("Błąd logowania. Spróbuj ponownie.");
                                 Console.WriteLine();
                                 Thread.Sleep(1000);
                             }
                         }
-                    }
-                    else if (selectedOption == 2)
-                    {
-                        // wejście bez logowania
-                        isLoggedIn = true; // użytkownik zalogowany, nie mając konta
-                        username = "Gość"; // domyślna nazwa użytkownika dla wejścia bez logowania
-                        selectedOption = 0;
-                    }
+                        else if (selectedOption == 1)
+                        {
+                            Console.Clear();
+                            Console.ForegroundColor = ConsoleColor.Yellow;
+                            Console.WriteLine("Rejestracja:");
+                            Console.Write("Podaj nazwę użytkownika: ");
+                            username = Console.ReadLine().Trim().ToLower(); //usuwanie bialych znakow na poczatku i koncu
+                            Console.Write("Podaj hasło: ");
+                            string password = "";
+                            while (true)
+                            {
+                                ConsoleKeyInfo key = Console.ReadKey(true);
 
-                    Console.WriteLine("Naciśnij dowolny klawisz, aby kontynuować...");
-                    Console.ReadKey();
-                }
-                else if (keyInfo.Key == ConsoleKey.UpArrow)
-                {
-                    selectedOption = Math.Max(0, selectedOption - 1);
-                    //scrollSound.Play();
-                }
-                else if (keyInfo.Key == ConsoleKey.DownArrow)
-                {
-                    selectedOption = Math.Min(2, selectedOption + 1);
-                    //scrollSound.Play();
+                                if (key.Key == ConsoleKey.Enter)
+                                {
+                                    break;
+                                }
+                                else if (key.Key == ConsoleKey.Backspace)
+                                {
+                                    if (password.Length > 0)
+                                    {
+                                        password = password.Substring(0, password.Length - 1);
+                                        Console.Write("\b \b"); // usuwamy ostatni znak i przesuwamy kursor w lewo
+                                    }
+                                }
+                                else
+                                {
+                                    password += key.KeyChar;
+                                    Console.Write("*"); // zamiana znaków na gwiazdki
+                                }
+                            }
+                            Console.WriteLine();
+                            Console.Write("Podaj imię: ");
+                            string imie = Console.ReadLine();
+                            Console.Write("Podaj nazwisko: ");
+                            string nazwisko = Console.ReadLine();
+                            Console.Write("Podaj datę urodzenia (dd.mm.yyyy): ");
+                            string data_urodzenia = Console.ReadLine();
+
+                            string pesel = "";
+                            do
+                            {
+                                Console.Write("Podaj pesel: ");
+                                pesel = Console.ReadLine();
+
+                                if (pesel.Length != 11)
+                                {
+                                    Console.WriteLine("Numer PESEL musi składać się z dokładnie 11 cyfr. Spróbuj ponownie.");
+                                }
+                            } while (pesel.Length != 11);
+
+                            Console.Write("Czy zgadzasz się na przetwarzanie swoich danych osobowych? (Tak/Nie): ");
+                            string consent = Console.ReadLine();
+                            bool agreedToProcessing = consent.Trim().Equals("Tak", StringComparison.OrdinalIgnoreCase);
+
+                            // sprawdzamy czy pola nie są puste i czy użytkownik wyraził zgodę
+                            if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(imie) || string.IsNullOrWhiteSpace(nazwisko) || string.IsNullOrWhiteSpace(data_urodzenia) || string.IsNullOrWhiteSpace(pesel) || !agreedToProcessing)
+                            {
+                                Console.WriteLine("Wszystkie pola są wymagane, a także musisz wyrazić zgodę na przetwarzanie danych. Spróbuj ponownie.");
+                                Thread.Sleep(1000);
+                            }
+                            else
+                            {
+                                if (authentication.Register(username, password, imie, nazwisko, data_urodzenia, pesel))
+                                {
+                                    Console.WriteLine();
+                                    Console.WriteLine("Zarejestrowano pomyślnie!");
+                                    Console.WriteLine();
+                                    Thread.Sleep(1000);
+                                }
+                                else
+                                {
+                                    Console.WriteLine();
+                                    Console.WriteLine("Błąd rejestracji. Spróbuj ponownie.");
+                                    Console.WriteLine();
+                                    Thread.Sleep(1000);
+                                }
+                            }
+                        }
+                        else if (selectedOption == 2)
+                        {
+                            // wejście bez logowania
+                            isLoggedIn = true; // użytkownik zalogowany, nie mając konta
+                            username = "Gość"; // domyślna nazwa użytkownika dla wejścia bez logowania
+                            selectedOption = 0;
+                        }
+
+                        Console.WriteLine("Naciśnij dowolny klawisz, aby kontynuować...");
+                        Console.ReadKey();
+                    }
+                    else if (keyInfo.Key == ConsoleKey.UpArrow)
+                    {
+                        selectedOption = Math.Max(0, selectedOption - 1);
+                    }
+                    else if (keyInfo.Key == ConsoleKey.DownArrow)
+                    {
+                        selectedOption = Math.Min(2, selectedOption + 1);
+                    }
                 }
             }
 
@@ -432,7 +435,7 @@ namespace govApp
             do
             {
                 Console.Clear();
-                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.ForegroundColor = ConsoleColor.Yellow;  // zółta czcionka
                 Console.WriteLine();
                 Console.WriteLine("===========================================");
                 Console.WriteLine();
@@ -455,7 +458,6 @@ namespace govApp
                     {
                         case 0:
                             Console.WriteLine("Przechodzisz do Dostępnych Programów.");
-                            //selectSound.Play();
                             // funkcja dostępnych programów
 
                             List<Project> availableProjects = authentication.GetAvailableProjects(dbConnector.GetConnection());
@@ -509,27 +511,31 @@ namespace govApp
                                 else if (projectKeyInfo.Key == ConsoleKey.UpArrow)
                                 {
                                     projectOption = Math.Max(0, projectOption - 1);
-                                    //scrollSound.Play();
                                 }
                                 else if (projectKeyInfo.Key == ConsoleKey.DownArrow)
                                 {
                                     projectOption = Math.Min(availableProjects.Count - 1, projectOption + 1);
-                                    //scrollSound.Play();
                                 }
                             }
                             break;
 
 
                         case 1:
-                             // funkcja wniosków
-                            if(username == "Gość") {
+                            // funkcja wniosków
+                            if (username == "Gość")
+                            {
                                 Console.WriteLine("Nie masz uprawnień do dodawania wniosków. Zaloguj się aby móc dodać nowy wniosek.");
                                 Console.ReadKey();
                                 break;
                             }
-                            Console.WriteLine("Przechodzisz do Moich Wniosków.");
+                            Console.WriteLine("Przechodzisz do okna tworzenia wniosku...");
                             Console.Clear();
 
+                            Console.WriteLine("Witamy w kreatorze wniosków. Tutaj możesz utworzyć własny projekt. Jeśli chcesz wyjśc kliknij 'escape'");
+                            if (Console.ReadKey().Key == ConsoleKey.Escape)
+                            {
+                                break; // wyjście z funkcji profilu.
+                            }
                             Console.WriteLine("Dodawanie nowego projektu:");
                             Console.Write("Podaj nazwę projektu: ");
                             string nazwaProjektu = Console.ReadLine();
@@ -545,7 +551,6 @@ namespace govApp
                             string osobaOpowiedzialna = Console.ReadLine();
                             Console.Write("Podaj kategorię programu: ");
                             string kategoria = Console.ReadLine();
-                            // Podobnie pobierz pozostałe dane dla nowego projektu
 
                             Project newProject = new Project
                             {
@@ -556,7 +561,6 @@ namespace govApp
                                 Data_zakonczenia = dataZakonczenia,
                                 Osoba_odpowiedzialna = osobaOpowiedzialna,
                                 Kategoria_programu = kategoria,
-                                // Dodaj pozostałe właściwości nowego projektu
                             };
 
                             if (authentication.AddNewProject(newProject))
@@ -574,15 +578,18 @@ namespace govApp
                                 Thread.Sleep(1000);
                             }
                             break;
+
+
                         case 2:
-                            Console.WriteLine("Przechodzisz do Profilu.");
-                            //selectSound.Play();
+                            Console.WriteLine("\nPrzechodzisz do Profilu.");
+                            Thread.Sleep(1000);
                             // funkcja profilu
                             Console.Clear();
+                            Console.WriteLine("Mój profil:\n");
                             Console.WriteLine($"Nazwa użytkownika: {username}");
                             Console.WriteLine();
                             var userProfile = authentication.GetUserProfile(username);
-
+                            
                             if (userProfile != null)
                             {
                                 Console.Clear();
@@ -595,11 +602,7 @@ namespace govApp
                                 Console.WriteLine("Naciśnij enter aby zmienić hasło.");
                                 Console.WriteLine();
                                 Console.WriteLine("Naciśnij escape aby wyjść.");
-                                if (Console.ReadKey().Key == ConsoleKey.Escape)
-                                {
-                                    break; // wyjście z funkcji profilu.
-                                }
-                                while (Console.ReadKey().Key != ConsoleKey.Enter)
+                                while (Console.ReadKey().Key != ConsoleKey.Enter || Console.ReadKey().Key != ConsoleKey.Escape)
                                 {
                                     Console.Clear();
                                     Console.Write("Podaj aktualne hasło: ");
@@ -631,24 +634,31 @@ namespace govApp
                                     string newPassword = "";
                                     while (true)
                                     {
-                                        ConsoleKeyInfo key = Console.ReadKey(true);
-
-                                        if (key.Key == ConsoleKey.Enter)
+                                        if (Console.ReadKey().Key == ConsoleKey.Escape)
                                         {
                                             break;
                                         }
-                                        else if (key.Key == ConsoleKey.Backspace)
-                                        {
-                                            if (newPassword.Length > 0)
-                                            {
-                                                newPassword = newPassword.Substring(0, newPassword.Length - 1);
-                                                Console.Write("\b \b");
-                                            }
-                                        }
                                         else
                                         {
-                                            newPassword += key.KeyChar;
-                                            Console.Write("*");
+                                            ConsoleKeyInfo key = Console.ReadKey(true);
+
+                                            if (key.Key == ConsoleKey.Enter)
+                                            {
+                                                break;
+                                            }
+                                            else if (key.Key == ConsoleKey.Backspace)
+                                            {
+                                                if (newPassword.Length > 0)
+                                                {
+                                                    newPassword = newPassword.Substring(0, newPassword.Length - 1);
+                                                    Console.Write("\b \b");
+                                                }
+                                            }
+                                            else
+                                            {
+                                                newPassword += key.KeyChar;
+                                                Console.Write("*");
+                                            }
                                         }
                                     }
                                     if (authentication.ChangePassword(username, oldPassword, newPassword))
@@ -660,24 +670,33 @@ namespace govApp
                                     {
                                         Console.Clear();
                                         Console.WriteLine("Błąd podczas zmiany hasła. Spróbuj ponownie.");
-                                    }
-
+                                        break;
+                                    } 
                                 }
                             }
                             break;
+
+                            
                         case 3:
                             Console.WriteLine("Przechodzisz do Pomocy i Obsługi.");
-                            //selectSound.Play();
+                            Thread.Sleep(1000);
                             // funkcja pomocy
                             break;
+
+
                         case 4:
-                            Console.WriteLine("Zamykanie aplikacji.");
+                            Console.WriteLine("Zamykanie aplikacji."); // zamyka program
                             return;
+
+
                         case 5:
                             // wylogowanie uzytkownika
+                            Console.WriteLine("\nWylogowywanie...");
+                            Thread.Sleep(1000);
                             isLoggedIn = false;
                             username = "";
                             selectedOption = 0;
+                            LoginScreen();
                             break;
                     }
 
@@ -688,12 +707,10 @@ namespace govApp
                 else if (keyInfo.Key == ConsoleKey.UpArrow)
                 {
                     selectedOption = Math.Max(0, selectedOption - 1);
-                    //scrollSound.Play();
                 }
                 else if (keyInfo.Key == ConsoleKey.DownArrow)
                 {
                     selectedOption = Math.Min(menuOptions.Length - 1, selectedOption + 1);
-                    //scrollSound.Play();
                 }
             } while (keyInfo.Key != ConsoleKey.Escape);
         }
