@@ -210,10 +210,11 @@ namespace govApp
 
             ConsoleKeyInfo keyInfo;
             int selectedOption = 0;
-            string[] menuOptions = { "Dostępne Programy", "Dodaj wniosek", "Profil", "Pomoc i Obsługa", "Wyjście", "Wyloguj" };
+            string[] menuOptions = { "Dostępne Programy", "Dodaj wniosek", "Profil", "Pomoc i FAQ", "Wyjście", "Wyloguj" };
             string[] loginOptions = { "Logowanie", "Rejestracja", "Wejście bez logowania" };
             bool isLoggedIn = false;
             string username = "";
+            bool isAdmin = false;
 
             Console.ForegroundColor = ConsoleColor.Yellow; //kolor czcionki
 
@@ -316,6 +317,18 @@ namespace govApp
                             Console.WriteLine();
                             if (authentication.Login(username, password))
                             {
+                                if (username == "admin")
+                                {
+                                    isAdmin = true;
+                                }
+                                if (isAdmin)
+                                {
+                                    menuOptions = new string[] { "Dostępne Programy", "Moje Wnioski", "Profil", "Pomoc i FAQ", "Wyjście", "Wyloguj", "Panel Admina" };
+                                }
+                                else
+                                {
+                                    menuOptions = new string[] { "Dostępne Programy", "Moje Wnioski", "Profil", "Pomoc i FAQ", "Wyjście", "Wyloguj" };
+                                }
                                 isLoggedIn = true;
                                 Console.WriteLine();
                                 Console.WriteLine("Zalogowano pomyślnie!");
@@ -492,7 +505,7 @@ namespace govApp
                                         Project selectedProject = availableProjects[projectOption];
                                         Console.WriteLine($"Nazwa programu: {selectedProject.Nazwa_programu} \n");
                                         Console.WriteLine($"Opis programu: {selectedProject.Opis_programu} \n");
-                                        Console.WriteLine($"Fundusz: {selectedProject.Fundusz} \n");
+                                        Console.WriteLine($"Fundusz: {selectedProject.Fundusz} zł\n");
                                         Console.WriteLine($"Data rozpoczęcia programu: {selectedProject.Data_rozpoczecia} \n");
                                         Console.WriteLine($"Data zakończenia programu: {selectedProject.Data_zakonczenia} \n");
                                         Console.WriteLine($"Osoba odpowiedzialna: {selectedProject.Osoba_odpowiedzialna} \n");
@@ -581,15 +594,22 @@ namespace govApp
 
 
                         case 2:
+                            if (username == "Gość")
+                            {
+                                Console.WriteLine("Nie możesz zobaczyć swojego profilu, ponieważ jesteś niezalogowany.");
+                                Console.ReadKey();
+                                break;
+                            }
                             Console.WriteLine("\nPrzechodzisz do Profilu.");
                             Thread.Sleep(1000);
+
                             // funkcja profilu
                             Console.Clear();
                             Console.WriteLine("Mój profil:\n");
                             Console.WriteLine($"Nazwa użytkownika: {username}");
                             Console.WriteLine();
                             var userProfile = authentication.GetUserProfile(username);
-                            
+
                             if (userProfile != null)
                             {
                                 Console.Clear();
@@ -671,18 +691,57 @@ namespace govApp
                                         Console.Clear();
                                         Console.WriteLine("Błąd podczas zmiany hasła. Spróbuj ponownie.");
                                         break;
-                                    } 
+                                    }
                                 }
                             }
                             break;
 
-                            
-                        case 3:
-                            Console.WriteLine("Przechodzisz do Pomocy i Obsługi.");
-                            Thread.Sleep(1000);
-                            // funkcja pomocy
-                            break;
 
+                        case 3:
+                            Console.WriteLine("\nPrzechodzisz do Pomocy i FAQ.");
+                            Thread.Sleep(1000);
+                            Console.Clear();
+
+                            // intrukcja obsługi
+                            Console.WriteLine("### Korzystanie z Aplikacji Rządowej ###");
+
+                            Console.WriteLine("\nLogowanie i Rejestracja: ");
+                            Console.WriteLine("- Aby korzystać z funkcji aplikacji, zaloguj się swoimi danymi lub zarejestruj nowe konto.");
+                            Console.WriteLine("- W przypadku braku konta, wybierz opcję 'Rejestracja' i wypełnij wszystkie wymagane pola.");
+
+                            Console.WriteLine("\nMenu Główne: ");
+                            Console.WriteLine("- Po zalogowaniu się użytkownik ma dostęp do głównego menu, gdzie może wybierać spośród różnych opcji, takich jak 'Dostępne Programy', 'Moje Wnioski', 'Profil', 'Pomoc i Obsługa', 'Wyjście' lub 'Wyloguj'.");
+
+                            Console.WriteLine("\nZarządzanie Profilem: ");
+
+                            Console.WriteLine("- W sekcji 'Profil' użytkownik może przeglądać swoje dane osobowe, a także zmieniać hasło.");
+
+                            Console.WriteLine("\n Dodawanie Nowego Projektu: ");
+                            Console.WriteLine("- W przypadku posiadania konta, użytkownik ma możliwość dodania nowego projektu do bazy danych aplikacji poprzez wybranie opcji 'Moje Wnioski'.");
+
+                            Console.WriteLine("\nWylogowanie: ");
+                            Console.WriteLine("- Po zakończeniu korzystania z aplikacji, wyloguj się, aby zabezpieczyć swoje konto.\n");
+
+                            Console.WriteLine("\n### FAQ (Najczęściej Zadawane Pytania) ###");
+                            Console.WriteLine("\nPytanie: Czy aplikacja jest bezpieczna dla moich danych osobowych?");
+                            Console.WriteLine("Odpowiedź: Tak, aplikacja dba o bezpieczeństwo danych. Hasła są przechowywane w formie zahaszowanej, co zabezpiecza informacje osobiste użytkowników.");
+
+                            Console.WriteLine("\nPytanie: Czy mogę korzystać z aplikacji bez logowania?");
+                            Console.WriteLine("Odpowiedź: Tak, istnieje możliwość wejścia do aplikacji bez logowania poprzez wybranie opcji 'Wejście bez logowania'. Jednakże, pewne funkcje mogą być niedostępne dla gości.");
+
+                            Console.WriteLine("\nPytanie: Jak dodam nowy projekt do aplikacji?");
+                            Console.WriteLine("Odpowiedź: Po zalogowaniu się, przejdź do sekcji 'Moje Wnioski' i wybierz opcję dodawania nowego projektu. Uzupełnij wymagane pola i zapisz informacje.");
+
+                            Console.WriteLine();
+                            Console.WriteLine("Naciśnij klawisz Enter, aby wrócić do menu głównego.");
+
+                            // oczekiwanie na naciśnięcie Enter, aby wrócić do menu głównego
+                            while (Console.ReadKey().Key != ConsoleKey.Enter)
+                            {
+                                // oczekiwanie na naciśnięcie Enter
+                            }
+
+                            break;
 
                         case 4:
                             Console.WriteLine("Zamykanie aplikacji."); // zamyka program
@@ -695,8 +754,82 @@ namespace govApp
                             Thread.Sleep(1000);
                             isLoggedIn = false;
                             username = "";
+                            isAdmin = false;
                             selectedOption = 0;
                             LoginScreen();
+                            break;
+
+                        case 6:
+                            //panel admina
+                            Console.WriteLine("Przechodzenie do panelu admina...");
+                            Thread.Sleep(1000);
+                            Console.Clear();
+
+                            int adminOption = 1; // Domyślnie wybrana opcja 1 (Przeglądaj konta)
+
+                            do
+                            {
+                                Console.Clear();
+                                Console.WriteLine("Witamy w panelu administratora.");
+                                Console.Write("Wybierz opcję: \n");
+
+                                for (int i = 1; i <= 3; i++)
+                                {
+                                    if (i == adminOption)
+                                    {
+                                        Console.Write(">> ");
+                                    }
+                                    Console.WriteLine($"{i}. {(i == 1 ? "Przeglądaj konta" : i == 2 ? "Usuń konto" : "Dodaj nowego admina")}");
+                                }
+
+                                ConsoleKeyInfo adminKey = Console.ReadKey();
+
+                                if (adminKey.Key == ConsoleKey.UpArrow)
+                                {
+                                    adminOption = Math.Max(1, adminOption - 1);
+                                }
+                                else if (adminKey.Key == ConsoleKey.DownArrow)
+                                {
+                                    adminOption = Math.Min(3, adminOption + 1);
+                                }
+                                else if (adminKey.Key == ConsoleKey.Enter)
+                                {
+                                    break; // Przerwij pętlę, jeśli wybrano opcję Enter
+                                }
+                            } while (true);
+
+                            switch (adminOption)
+                            {
+                                case 1: // Przeglądanie kont
+                                    Console.WriteLine("Lista użytkowników:");
+                                    // Pobierz wszystkich użytkowników z bazy danych i wyświetl ich listę
+                                    // Kod do pobierania użytkowników z bazy danych
+                                    // foreach (var user in usersList)
+                                    // {
+                                    //     Console.WriteLine($"{user.Id} - {user.Username}");
+                                    // }
+                                    break;
+
+                                case 2: // Usuwanie konta
+                                    Console.Write("Podaj nazwę użytkownika do usunięcia: ");
+                                    string userToDelete = Console.ReadLine();
+                                    // Usunięcie użytkownika o podanej nazwie użytkownika z bazy danych
+                                    // Funkcja do usuwania użytkownika z bazy danych
+                                    // deleteUser(userToDelete);
+                                    break;
+
+                                case 3: // Dodawanie nowego admina
+                                    Console.Write("Podaj nazwę użytkownika, którego chcesz zrobić administratorem: ");
+                                    string newAdmin = Console.ReadLine();
+                                    // Zmiana uprawnień użytkownika na administratora w bazie danych
+                                    // Funkcja zmieniająca uprawnienia użytkownika na administratora
+                                    // makeUserAdmin(newAdmin);
+                                    break;
+
+                                default:
+                                    Console.WriteLine("Nieprawidłowy wybór.");
+                                    break;
+                            }
                             break;
                     }
 
