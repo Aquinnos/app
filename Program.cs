@@ -2,7 +2,6 @@
 using System.Threading;
 using Microsoft.Data.Sqlite;
 using System.Media;
-using Spectre.Console;
 using BCrypt.Net;
 
 namespace govApp
@@ -60,11 +59,13 @@ namespace govApp
             _connection = connection;
         }
 
-        public bool Login(string username, string password)
+        public bool Login(string username, string password, out bool isAdmin)
         {
+            isAdmin = false;
+
             using (var cmd = _connection.CreateCommand())
             {
-                cmd.CommandText = "SELECT UserId, Password FROM users WHERE Username = @username";
+                cmd.CommandText = "SELECT UserId, Password, Admin FROM users WHERE Username = @username";
                 cmd.Parameters.AddWithValue("@username", username);
 
                 using (var reader = cmd.ExecuteReader())
@@ -72,19 +73,24 @@ namespace govApp
                     if (reader.Read())
                     {
                         string hashedPassword = reader["Password"].ToString();
+                        string adminValue = reader["Admin"].ToString();
 
-                        // porównanie wprowadzonego hasła z zahaszowanym hasłem z bazy danych
+                        // Sprawdzenie, czy wprowadzone hasło zgadza się z zahaszowanym hasłem z bazy danych
                         if (BCrypt.Net.BCrypt.Verify(password, hashedPassword))
                         {
-                            // true jesli hasla sie zgadzaja
+                            // Ustawienie wartości isAdmin na true, jeśli użytkownik jest administratorem
+                            isAdmin = adminValue.Equals("tak", StringComparison.OrdinalIgnoreCase);
+
+                            // Zwróć true, jeśli hasła się zgadzają
                             return true;
                         }
                     }
                 }
-                // false, jesli haslo sie nie zgadza lub uzytkownik nie istnieje
+                // Zwróć false, jeśli hasło się nie zgadza lub użytkownik nie istnieje
                 return false;
             }
         }
+
 
 
         public bool Register(string username, string password, string imie, string nazwisko, string data_urodzenia, string pesel)
@@ -108,6 +114,7 @@ namespace govApp
                 return rowsAffected > 0;
             }
         }
+
 
         public bool ChangePassword(string username, string oldPassword, string newPassword)
         {
@@ -197,6 +204,65 @@ namespace govApp
             return projects;
         }
 
+
+        public List<UserProfile> GetAllUsers()
+        {
+            List<UserProfile> usersList = new List<UserProfile>();
+
+            using (var cmd = _connection.CreateCommand())
+            {
+                cmd.CommandText = "SELECT Imie, Nazwisko, data_urodzenia, Pesel FROM users";
+
+                using (var reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        UserProfile user = new UserProfile
+                        {
+                            Imie = reader["Imie"].ToString(),
+                            Nazwisko = reader["Nazwisko"].ToString(),
+                            DataUrodzenia = reader["data_urodzenia"].ToString(),
+                            Pesel = reader["Pesel"].ToString()
+                        };
+
+                        usersList.Add(user);
+                    }
+                }
+            }
+
+            return usersList;
+        }
+
+
+        public bool DeleteUser(string usernameToDelete)
+        {
+            using (var cmd = _connection.CreateCommand())
+            {
+                cmd.CommandText = "DELETE FROM users WHERE Username = @usernameToDelete";
+                cmd.Parameters.AddWithValue("@usernameToDelete", usernameToDelete);
+
+                int rowsAffected = cmd.ExecuteNonQuery();
+
+                // Zwracamy true, jeśli użytkownik został usunięty poprawnie
+                return rowsAffected > 0;
+            }
+        }
+
+
+        public bool MakeUserAdmin(string username)
+        {
+            using (var cmd = _connection.CreateCommand())
+            {
+                cmd.CommandText = "UPDATE users SET Admin = 'tak' WHERE Username = @username";
+                cmd.Parameters.AddWithValue("@username", username);
+
+                int rowsAffected = cmd.ExecuteNonQuery();
+
+                // Zwróć true, jeśli użytkownik został pomyślnie ustawiony jako administrator
+                return rowsAffected > 0;
+            }
+        }
+
     }
 
 
@@ -233,23 +299,6 @@ namespace govApp
             Console.WriteLine("Dodatkowo, możesz zarządzać swoim profilem, dostosowując go do swoich potrzeb.");
             Thread.Sleep(3000);
             Console.WriteLine("\n");
-
-            AnsiConsole.Status()
-                .Start("Synchronizacja bazy danych...", ctx =>
-                {
-                    // symulacja 
-                    AnsiConsole.MarkupLine("Przygotowywanie tabel...");
-                    Thread.Sleep(3000);
-
-                    // aktualizacja statusu
-                    ctx.Status("Już prawie!");
-                    ctx.Spinner(Spinner.Known.Star);
-                    ctx.SpinnerStyle(Style.Parse("green"));
-
-                    // symulacja
-                    AnsiConsole.MarkupLine("Ładuje...");
-                    Thread.Sleep(3000);
-                });
 
             while (!isLoggedIn)
             {
@@ -315,12 +364,8 @@ namespace govApp
                             }
 
                             Console.WriteLine();
-                            if (authentication.Login(username, password))
+                            if (authentication.Login(username, password, out isAdmin))
                             {
-                                if (username == "admin")
-                                {
-                                    isAdmin = true;
-                                }
                                 if (isAdmin)
                                 {
                                     menuOptions = new string[] { "Dostępne Programy", "Moje Wnioski", "Profil", "Pomoc i FAQ", "Wyjście", "Wyloguj", "Panel Admina" };
@@ -622,9 +667,12 @@ namespace govApp
                                 Console.WriteLine("Naciśnij enter aby zmienić hasło.");
                                 Console.WriteLine();
                                 Console.WriteLine("Naciśnij escape aby wyjść.");
-                                while (Console.ReadKey().Key != ConsoleKey.Enter || Console.ReadKey().Key != ConsoleKey.Escape)
+                                while (Console.ReadKey().Key != ConsoleKey.Escape)
                                 {
                                     Console.Clear();
+                                    Console.WriteLine("Witaj użytkowniku tutaj możesz zmienić hasło klikając 'Enter' lub możesz wyjść klikając 'Escape'");
+                                    if (Console.ReadKey().Key == ConsoleKey.Escape) break;
+                                    Console.ReadKey();
                                     Console.Write("Podaj aktualne hasło: ");
                                     string oldPassword = "";
                                     while (true)
@@ -770,16 +818,16 @@ namespace govApp
                             do
                             {
                                 Console.Clear();
-                                Console.WriteLine("Witamy w panelu administratora.");
+                                Console.WriteLine("Witaj w panelu administratora.");
                                 Console.Write("Wybierz opcję: \n");
 
-                                for (int i = 1; i <= 3; i++)
+                                for (int i = 1; i <= 4; i++)
                                 {
                                     if (i == adminOption)
                                     {
                                         Console.Write(">> ");
                                     }
-                                    Console.WriteLine($"{i}. {(i == 1 ? "Przeglądaj konta" : i == 2 ? "Usuń konto" : "Dodaj nowego admina")}");
+                                    Console.WriteLine($"{i}. {(i == 1 ? "Przeglądaj konta" : i == 2 ? "Usuń konto" : i == 3 ? "Dodaj nowego admina" : "Wyjdź z panelu")}");
                                 }
 
                                 ConsoleKeyInfo adminKey = Console.ReadKey();
@@ -790,40 +838,107 @@ namespace govApp
                                 }
                                 else if (adminKey.Key == ConsoleKey.DownArrow)
                                 {
-                                    adminOption = Math.Min(3, adminOption + 1);
+                                    adminOption = Math.Min(4, adminOption + 1);
                                 }
                                 else if (adminKey.Key == ConsoleKey.Enter)
                                 {
-                                    break; // Przerwij pętlę, jeśli wybrano opcję Enter
+                                    break; // przerwij pętlę po klinknieciu enter
                                 }
                             } while (true);
 
                             switch (adminOption)
                             {
-                                case 1: // Przeglądanie kont
+                                case 1: // przeglądanie kont
+                                    Console.Clear();
                                     Console.WriteLine("Lista użytkowników:");
-                                    // Pobierz wszystkich użytkowników z bazy danych i wyświetl ich listę
-                                    // Kod do pobierania użytkowników z bazy danych
-                                    // foreach (var user in usersList)
-                                    // {
-                                    //     Console.WriteLine($"{user.Id} - {user.Username}");
-                                    // }
+
+                                    List<UserProfile> usersListCase1 = authentication.GetAllUsers();
+
+                                    if (usersListCase1 != null && usersListCase1.Count > 0)
+                                    {
+                                        foreach (var user in usersListCase1)
+                                        {
+                                            Console.WriteLine($"Imię: {user.Imie}, Nazwisko: {user.Nazwisko}, Data urodzenia: {user.DataUrodzenia}, PESEL: {user.Pesel}");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("Brak użytkowników.");
+                                    }
                                     break;
 
-                                case 2: // Usuwanie konta
-                                    Console.Write("Podaj nazwę użytkownika do usunięcia: ");
-                                    string userToDelete = Console.ReadLine();
-                                    // Usunięcie użytkownika o podanej nazwie użytkownika z bazy danych
-                                    // Funkcja do usuwania użytkownika z bazy danych
-                                    // deleteUser(userToDelete);
+                                case 2: // usuwanie konta
+                                    Console.Clear();
+
+                                    Console.WriteLine("Lista użytkowników:");
+                                    List<UserProfile> usersListCase2 = authentication.GetAllUsers();
+
+                                    for (int i = 0; i < usersListCase2.Count; i++)
+                                    {
+                                        Console.WriteLine($"{i + 1}. {usersListCase2[i].Imie} {usersListCase2[i].Nazwisko}");
+                                    }
+
+                                    Console.Write("\nWybierz numer użytkownika do usunięcia: ");
+                                    int userIndexToDelete;
+                                    bool isIndexValid = int.TryParse(Console.ReadLine(), out userIndexToDelete);
+
+                                    if (isIndexValid && userIndexToDelete > 0 && userIndexToDelete <= usersListCase2.Count)
+                                    {
+                                        string userToDelete = usersListCase2[userIndexToDelete - 1].Imie;
+
+                                        bool isUserDeleted = authentication.DeleteUser(userToDelete);
+
+                                        if (isUserDeleted)
+                                        {
+                                            Console.WriteLine($"Użytkownik {userToDelete} został pomyślnie usunięty.");
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine($"Nie udało się usunąć użytkownika {userToDelete}.");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("Nieprawidłowy wybór.");
+                                    }
                                     break;
 
-                                case 3: // Dodawanie nowego admina
-                                    Console.Write("Podaj nazwę użytkownika, którego chcesz zrobić administratorem: ");
-                                    string newAdmin = Console.ReadLine();
-                                    // Zmiana uprawnień użytkownika na administratora w bazie danych
-                                    // Funkcja zmieniająca uprawnienia użytkownika na administratora
-                                    // makeUserAdmin(newAdmin);
+                                case 3: // dodawanie nowego admina
+                                    Console.Clear();
+                                    Console.WriteLine("Lista użytkowników:");
+                                    List<UserProfile> usersListCase3 = authentication.GetAllUsers();
+
+                                    for (int i = 0; i < usersListCase3.Count; i++)
+                                    {
+                                        Console.WriteLine($"{i + 1}. {usersListCase3[i].Imie} {usersListCase3[i].Nazwisko}");
+                                    }
+
+                                    Console.Write("\nWybierz numer użytkownika do zmiany na admina: ");
+                                    int userIndexToAdmin;
+                                    bool isIndexValidForAdmin = int.TryParse(Console.ReadLine(), out userIndexToAdmin);
+
+                                    if (isIndexValidForAdmin && userIndexToAdmin > 0 && userIndexToAdmin <= usersListCase3.Count)
+                                    {
+                                        string userToMakeAdmin = usersListCase3[userIndexToAdmin - 1].Imie;
+
+                                        bool isUserMadeAdmin = authentication.MakeUserAdmin(userToMakeAdmin);
+
+                                        if (isUserMadeAdmin)
+                                        {
+                                            Console.WriteLine($"Użytkownik {userToMakeAdmin} został pomyślnie zmieniony na administratora.");
+                                        }
+                                        else
+                                        {
+                                            Console.WriteLine($"Nie udało się zmienić użytkownika {userToMakeAdmin} na administratora.");
+                                        }
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("Nieprawidłowy wybór.");
+                                    }
+                                    break;
+
+                                case 4:
                                     break;
 
                                 default:
