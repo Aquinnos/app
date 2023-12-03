@@ -2,6 +2,7 @@
 using System.Threading;
 using Microsoft.Data.Sqlite;
 using System.Media;
+using System.Globalization;
 using BCrypt.Net;
 
 namespace govApp
@@ -427,8 +428,22 @@ namespace govApp
                             string imie = Console.ReadLine();
                             Console.Write("Podaj nazwisko: ");
                             string nazwisko = Console.ReadLine();
-                            Console.Write("Podaj datę urodzenia (dd.mm.yyyy): ");
-                            string data_urodzenia = Console.ReadLine();
+                            bool isValidDate;
+                            string data_urodzenia;
+                            do
+                            {
+                                Console.Write("Podaj datę urodzenia (dd.mm.yyyy): ");
+                                data_urodzenia = Console.ReadLine();
+
+                                // Sprawdzenie poprawności formatu daty
+                                DateTime dob;
+                                isValidDate = DateTime.TryParseExact(data_urodzenia, "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out dob);
+                                if (!isValidDate)
+                                {
+                                    Console.WriteLine("Nieprawidłowy format daty. Podaj datę w formacie dd.mm.yyyy. Spróbuj ponownie.");
+                                }
+
+                            } while (!isValidDate);
 
                             string pesel;
                             do
