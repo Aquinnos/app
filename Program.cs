@@ -28,6 +28,15 @@ namespace govApp
 
     public class Authentication
     {
+        private SqliteConnection _connection;
+
+
+        public Authentication(SqliteConnection connection)
+        {
+            _connection = connection;
+        }
+
+
         public UserProfile GetUserProfile(string username)
         {
             using (var cmd = _connection.CreateCommand())
@@ -49,15 +58,9 @@ namespace govApp
                     }
                 }
             }
-
             return null;
         }
-        private SqliteConnection _connection;
 
-        public Authentication(SqliteConnection connection)
-        {
-            _connection = connection;
-        }
 
         public bool Login(string username, string password, out bool isAdmin)
         {
@@ -75,18 +78,18 @@ namespace govApp
                         string hashedPassword = reader["Password"].ToString();
                         string adminValue = reader["Admin"].ToString();
 
-                        // Sprawdzenie, czy wprowadzone hasło zgadza się z zahaszowanym hasłem z bazy danych
+                        // sprawdzenie, czy wprowadzone hasło zgadza się z zahaszowanym hasłem z bazy danych
                         if (BCrypt.Net.BCrypt.Verify(password, hashedPassword))
                         {
                             // Ustawienie wartości isAdmin na true, jeśli użytkownik jest administratorem
                             isAdmin = adminValue.Equals("tak", StringComparison.OrdinalIgnoreCase);
 
-                            // Zwróć true, jeśli hasła się zgadzają
+                            // zwraca true, jesli hasla się zgadzają
                             return true;
                         }
                     }
                 }
-                // Zwróć false, jeśli hasło się nie zgadza lub użytkownik nie istnieje
+                // zwraca false jesli hasla sie nie zgadzaja lub uzytkownik nie istnieje
                 return false;
             }
         }
@@ -118,7 +121,7 @@ namespace govApp
 
         public bool ChangePassword(string username, string oldPassword, string newPassword)
         {
-            // Pobierz hasło z bazy danych na podstawie nazwy użytkownika
+            // pobieranie hasła z bazy danych na podstawie nazwy użytkownika
             using (var cmd = _connection.CreateCommand())
             {
                 cmd.CommandText = "SELECT Password FROM users WHERE Username = @username";
@@ -130,10 +133,10 @@ namespace govApp
                     {
                         string hashedPassword = reader["Password"].ToString();
 
-                        // Sprawdź, czy stare hasło jest poprawne
+                        // sprawdzenie czy stare hasło jest poprawne
                         if (BCrypt.Net.BCrypt.Verify(oldPassword, hashedPassword))
                         {
-                            // Haszuj i zaktualizuj nowe hasło w bazie danych
+                            // hashowanie i aktualizacja nowego hasło w bazie danych
                             string newHashedPassword = BCrypt.Net.BCrypt.HashPassword(newPassword);
                             using (var updateCmd = _connection.CreateCommand())
                             {
@@ -143,7 +146,7 @@ namespace govApp
 
                                 int rowsAffected = updateCmd.ExecuteNonQuery();
 
-                                // Zwróć true, jeśli hasło zostało zaktualizowane
+                                // zwraca true jesli haslo zostalo poprawnie wpisane
                                 return rowsAffected > 0;
                             }
                         }
@@ -169,7 +172,7 @@ namespace govApp
 
                 int rowsAffected = cmd.ExecuteNonQuery();
 
-                // Zwracamy true, jeśli projekt został dodany poprawnie
+                // zwraca true jesli projekt jest poprawnie dodany
                 return rowsAffected > 0;
             }
         }
@@ -243,7 +246,7 @@ namespace govApp
 
                 int rowsAffected = cmd.ExecuteNonQuery();
 
-                // Zwracamy true, jeśli użytkownik został usunięty poprawnie
+                // zwraca true jesli uzytkownik zostal poprawnie usuniety
                 return rowsAffected > 0;
             }
         }
@@ -258,7 +261,7 @@ namespace govApp
 
                 int rowsAffected = cmd.ExecuteNonQuery();
 
-                // Zwróć true, jeśli użytkownik został pomyślnie ustawiony jako administrator
+                // zwraca true jesli użytkownik został pomyślnie ustawiony jako administrator
                 return rowsAffected > 0;
             }
         }
@@ -280,7 +283,7 @@ namespace govApp
             string[] loginOptions = { "Logowanie", "Rejestracja", "Wejście bez logowania" };
             bool isLoggedIn = false;
             string username = "";
-            bool isAdmin = false;
+            bool isAdmin;
 
             Console.ForegroundColor = ConsoleColor.Yellow; //kolor czcionki
 
@@ -427,7 +430,7 @@ namespace govApp
                             Console.Write("Podaj datę urodzenia (dd.mm.yyyy): ");
                             string data_urodzenia = Console.ReadLine();
 
-                            string pesel = "";
+                            string pesel;
                             do
                             {
                                 Console.Write("Podaj pesel: ");
@@ -802,7 +805,6 @@ namespace govApp
                             Thread.Sleep(1000);
                             isLoggedIn = false;
                             username = "";
-                            isAdmin = false;
                             selectedOption = 0;
                             LoginScreen();
                             break;
@@ -813,7 +815,7 @@ namespace govApp
                             Thread.Sleep(1000);
                             Console.Clear();
 
-                            int adminOption = 1; // Domyślnie wybrana opcja 1 (Przeglądaj konta)
+                            int adminOption = 1;
 
                             do
                             {
