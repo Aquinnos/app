@@ -216,3 +216,4 @@ C:\Users\grzeg\OneDrive\Pulpit\studia\projekt\3\obj\Debug\net7.0\refint\app.dll
 C:\Users\grzeg\OneDrive\Pulpit\studia\projekt\3\obj\Debug\net7.0\app.pdb
 C:\Users\grzeg\OneDrive\Pulpit\studia\projekt\3\obj\Debug\net7.0\app.genruntimeconfig.cache
 C:\Users\grzeg\OneDrive\Pulpit\studia\projekt\3\obj\Debug\net7.0\ref\app.dll
+C:\Users\Aquinn\Desktop\app\obj\Debug\net7.0\app.sourcelink.json

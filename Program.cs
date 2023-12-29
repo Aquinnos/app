@@ -826,6 +826,12 @@ namespace govApp
 
                         case 6:
                             //panel admina
+                            if (username == "Gość")
+                            {
+                                Console.WriteLine("Nie masz uprawnień do panelu admina. Zaloguj się jako admin.");
+                                Console.ReadKey();
+                                break;
+                            }
                             Console.WriteLine("Przechodzenie do panelu admina...");
                             Thread.Sleep(1000);
                             Console.Clear();

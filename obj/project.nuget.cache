@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "lMF2pgKR+3+HW1DS4hDa/3Albq+D/EYDUDJkHQnNXmvlDDxv5FuRh76t3wuuTk6oFKCGJDiId9MF4IrkTzl19w==",
+  "dgSpecHash": "323tRfdb4m26huo/0e2cLhpP54IBORfTtbTbU3SN+JNemjlTnGTzdXwr3QqOK3bQ7J2sUz2HUtC8hoPUrvNK4w==",
   "success": true,
   "projectFilePath": "C:\\Users\\Aquinn\\Desktop\\app\\app.csproj",
   "expectedPackageFiles": [
@@ -44,7 +44,11 @@
     "C:\\Users\\Aquinn\\.nuget\\packages\\system.threading.tasks\\4.3.0\\system.threading.tasks.4.3.0.nupkg.sha512",
     "C:\\Users\\Aquinn\\.nuget\\packages\\system.threading.tasks.extensions\\4.5.4\\system.threading.tasks.extensions.4.5.4.nupkg.sha512",
     "C:\\Users\\Aquinn\\.nuget\\packages\\system.windows.extensions\\4.7.0\\system.windows.extensions.4.7.0.nupkg.sha512",
-    "C:\\Users\\Aquinn\\.nuget\\packages\\zstdsharp.port\\0.7.1\\zstdsharp.port.0.7.1.nupkg.sha512"
+    "C:\\Users\\Aquinn\\.nuget\\packages\\zstdsharp.port\\0.7.1\\zstdsharp.port.0.7.1.nupkg.sha512",
+    "C:\\Users\\Aquinn\\.nuget\\packages\\microsoft.netcore.app.ref\\7.0.14\\microsoft.netcore.app.ref.7.0.14.nupkg.sha512",
+    "C:\\Users\\Aquinn\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\7.0.14\\microsoft.windowsdesktop.app.ref.7.0.14.nupkg.sha512",
+    "C:\\Users\\Aquinn\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\7.0.14\\microsoft.aspnetcore.app.ref.7.0.14.nupkg.sha512",
+    "C:\\Users\\Aquinn\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\7.0.14\\microsoft.netcore.app.host.win-x64.7.0.14.nupkg.sha512"
   ],
   "logs": []
 }
