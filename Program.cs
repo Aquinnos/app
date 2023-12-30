@@ -4,6 +4,8 @@ using Microsoft.Data.Sqlite;
 using System.Media;
 using System.Globalization;
 using BCrypt.Net;
+using System.Text;
+
 
 namespace govApp
 {
@@ -29,10 +31,62 @@ namespace govApp
 
     public class Authentication
     {
+        public bool UpdateUserProfile(string username, string newName, string newSurname, string newDateOfBirth, string newPesel)
+        {
+            var updateSet = new List<string>();
+            if (!string.IsNullOrWhiteSpace(newName))
+            {
+                updateSet.Add("Imie = @newName");
+            }
+            if (!string.IsNullOrWhiteSpace(newSurname))
+            {
+                updateSet.Add("Nazwisko = @newSurname");
+            }
+            if (!string.IsNullOrWhiteSpace(newDateOfBirth))
+            {
+                updateSet.Add("data_urodzenia = @newDateOfBirth");
+            }
+            if (!string.IsNullOrWhiteSpace(newPesel) && newPesel.Length == 11)
+            {
+                updateSet.Add("Pesel = @newPesel");
+            }
+            else if (!string.IsNullOrWhiteSpace(newPesel))
+            {
+                Console.WriteLine("Numer PESEL musi składać się z dokładnie 11 cyfr. Spróbuj ponownie.");
+                Console.ReadKey();
+                return false; // Nie aktualizuj, jeśli PESEL nie ma 11 znaków
+            }
+
+            if (updateSet.Count == 0)
+            {
+                return false; // Nie ma żadnych zmian do wprowadzenia
+            }
+
+            using (var cmd = _connection.CreateCommand())
+            {
+                string updateQuery = string.Join(", ", updateSet);
+                cmd.CommandText = $"UPDATE users SET {updateQuery} WHERE Username = @username";
+                cmd.Parameters.AddWithValue("@username", username);
+                if (updateSet.Contains("Imie = @newName"))
+                    cmd.Parameters.AddWithValue("@newName", newName);
+                if (updateSet.Contains("Nazwisko = @newSurname"))
+                    cmd.Parameters.AddWithValue("@newSurname", newSurname);
+                if (updateSet.Contains("data_urodzenia = @newDateOfBirth"))
+                    cmd.Parameters.AddWithValue("@newDateOfBirth", newDateOfBirth);
+                if (updateSet.Contains("Pesel = @newPesel"))
+                    cmd.Parameters.AddWithValue("@newPesel", newPesel);
+
+                int rowsAffected = cmd.ExecuteNonQuery();
+
+                return rowsAffected > 0;
+            }
+        }
+
         private SqliteConnection _connection;
 
 
         public Authentication(SqliteConnection connection)
+        
         {
             _connection = connection;
         }
@@ -122,7 +176,6 @@ namespace govApp
 
         public bool ChangePassword(string username, string oldPassword, string newPassword)
         {
-            // pobieranie hasła z bazy danych na podstawie nazwy użytkownika
             using (var cmd = _connection.CreateCommand())
             {
                 cmd.CommandText = "SELECT Password FROM users WHERE Username = @username";
@@ -133,11 +186,8 @@ namespace govApp
                     if (reader.Read())
                     {
                         string hashedPassword = reader["Password"].ToString();
-
-                        // sprawdzenie czy stare hasło jest poprawne
                         if (BCrypt.Net.BCrypt.Verify(oldPassword, hashedPassword))
                         {
-                            // hashowanie i aktualizacja nowego hasło w bazie danych
                             string newHashedPassword = BCrypt.Net.BCrypt.HashPassword(newPassword);
                             using (var updateCmd = _connection.CreateCommand())
                             {
@@ -146,8 +196,6 @@ namespace govApp
                                 updateCmd.Parameters.AddWithValue("@username", username);
 
                                 int rowsAffected = updateCmd.ExecuteNonQuery();
-
-                                // zwraca true jesli haslo zostalo poprawnie wpisane
                                 return rowsAffected > 0;
                             }
                         }
@@ -156,6 +204,7 @@ namespace govApp
             }
             return false;
         }
+
 
 
         public bool AddNewProject(Project project)
@@ -272,6 +321,31 @@ namespace govApp
 
     internal class Program
     {
+        private static string ReadPassword()
+        {
+            var password = new StringBuilder();
+            while (true)
+            {
+                var key = Console.ReadKey(true);
+                if (key.Key == ConsoleKey.Enter)
+                {
+                    break;
+                }
+                if (key.Key == ConsoleKey.Backspace && password.Length > 0)
+                {
+                    password.Remove(password.Length - 1, 1);
+                    Console.Write("\b \b"); // usuwa ostatni znak z konsoli
+                }
+                else if (key.Key != ConsoleKey.Backspace)
+                {
+                    password.Append(key.KeyChar);
+                    Console.Write("*");
+                }
+            }
+            Console.WriteLine();
+            return password.ToString();
+        }
+
         private static void Main(string[] args)
         {
             DatabaseConnector dbConnector = new DatabaseConnector("./govapp.sqlite");
@@ -667,13 +741,11 @@ namespace govApp
                             Thread.Sleep(1000);
 
                             // funkcja profilu
-                            Console.Clear();
-                            Console.WriteLine("Mój profil:\n");
-                            Console.WriteLine($"Nazwa użytkownika: {username}");
-                            Console.WriteLine();
                             var userProfile = authentication.GetUserProfile(username);
-
-                            if (userProfile != null)
+                            int profileOption = 0;
+                            string[] profileOptions = { "Zaktualizuj dane profilowe", "Zmień hasło", "Wyjście" };
+                            bool isProfileMenuActive = true;
+                            while (isProfileMenuActive)
                             {
                                 Console.Clear();
                                 Console.WriteLine($"Nazwa użytkownika: {username}");
@@ -682,81 +754,94 @@ namespace govApp
                                 Console.WriteLine($"Data urodzenia: {userProfile.DataUrodzenia}");
                                 Console.WriteLine($"PESEL: {userProfile.Pesel}");
                                 Console.WriteLine();
-                                Console.WriteLine("Naciśnij enter aby zmienić hasło.");
-                                Console.WriteLine();
-                                Console.WriteLine("Naciśnij escape aby wyjść.");
-                                while (Console.ReadKey().Key != ConsoleKey.Escape)
+                                for (int i = 0; i < profileOptions.Length; i++)
                                 {
-                                    Console.Clear();
-                                    Console.WriteLine("Witaj użytkowniku tutaj możesz zmienić hasło klikając 'Enter' lub możesz wyjść klikając 'Escape'");
-                                    if (Console.ReadKey().Key == ConsoleKey.Escape) break;
-                                    Console.ReadKey();
-                                    Console.Write("Podaj aktualne hasło: ");
-                                    string oldPassword = "";
-                                    while (true)
-                                    {
-                                        ConsoleKeyInfo key = Console.ReadKey(true);
+                                    Console.WriteLine(profileOption == i ? $">> {profileOptions[i]}" : profileOptions[i]);
+                                }
 
-                                        if (key.Key == ConsoleKey.Enter)
-                                        {
-                                            break;
-                                        }
-                                        else if (key.Key == ConsoleKey.Backspace)
-                                        {
-                                            if (oldPassword.Length > 0)
-                                            {
-                                                oldPassword = oldPassword.Substring(0, oldPassword.Length - 1);
-                                                Console.Write("\b \b");
-                                            }
-                                        }
-                                        else
-                                        {
-                                            oldPassword += key.KeyChar;
-                                            Console.Write("*");
-                                        }
-                                    }
-                                    Console.WriteLine();
-                                    Console.Write("Podaj nowe hasło: ");
-                                    string newPassword = "";
-                                    while (true)
+                                var key = Console.ReadKey();
+                                if (key.Key == ConsoleKey.UpArrow)
+                                {
+                                    profileOption = profileOption == 0 ? profileOptions.Length - 1 : profileOption - 1;
+                                }
+                                else if (key.Key == ConsoleKey.DownArrow)
+                                {
+                                    profileOption = profileOption == profileOptions.Length - 1 ? 0 : profileOption + 1;
+                                }
+                                else if (key.Key == ConsoleKey.Enter)
+                                {
+                                    switch (profileOption)
                                     {
-                                        if (Console.ReadKey().Key == ConsoleKey.Escape)
-                                        {
-                                            break;
-                                        }
-                                        else
-                                        {
-                                            ConsoleKeyInfo key = Console.ReadKey(true);
+                                        case 0:
+                                                // Dodanie opcji aktualizacji danych profilowych
+                                                    Console.Write("Podaj nowe imię (lub naciśnij Enter, aby pozostawić aktualne): ");
+                                                    string newName = Console.ReadLine();
+                                                    Console.Write("Podaj nowe nazwisko (lub naciśnij Enter, aby pozostawić aktualne): ");
+                                                    string newSurname = Console.ReadLine();
+                                                    bool validDate;
+                                                    string newDateOfBirth;
+                                                    do
+                                                    {
+                                                        Console.Write("Podaj nową datę urodzenia (dd.mm.yyyy, lub naciśnij Enter, aby pozostawić aktualną): ");
+                                                        newDateOfBirth = Console.ReadLine();
+                                                        if (string.IsNullOrWhiteSpace(newDateOfBirth))
+                                                        {
+                                                            break; // Użytkownik nie chce zmieniać daty
+                                                        }
+                                                        validDate = DateTime.TryParseExact(newDateOfBirth, "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out _);
+                                                        if (!validDate)
+                                                        {
+                                                            Console.WriteLine("Nieprawidłowy format daty. Użyj formatu dd.mm.yyyy.");
+                                                        }
+                                                    } 
+                                                    while (!validDate);
 
-                                            if (key.Key == ConsoleKey.Enter)
-                                            {
+                                                    Console.Write("Podaj nowy PESEL (lub naciśnij Enter, aby pozostawić aktualny): ");
+                                                    string newPesel = Console.ReadLine();
+
+                                                    // Sprawdzenie, czy użytkownik wprowadził jakiekolwiek dane
+                                                    if (!string.IsNullOrWhiteSpace(newName) || !string.IsNullOrWhiteSpace(newSurname) || !string.IsNullOrWhiteSpace(newDateOfBirth) || !string.IsNullOrWhiteSpace(newPesel))
+                                                    {
+                                                        if (authentication.UpdateUserProfile(username, newName, newSurname, newDateOfBirth, newPesel))
+                                                        {
+                                                            Console.WriteLine("Dane profilowe zostały zaktualizowane.");
+                                                            Thread.Sleep(1000);
+                                                        }
+                                                        else
+                                                        {
+                                                            Console.WriteLine("Nie udało się zaktualizować danych profilowych.");
+                                                            Thread.Sleep(1000);
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        Console.WriteLine("Nie wprowadzono żadnych zmian.");
+                                                        Thread.Sleep(1000);
+                                                    }
+
+
                                                 break;
-                                            }
-                                            else if (key.Key == ConsoleKey.Backspace)
+                                        case 1:
+                                        //zmiana hasła
+                                        Console.Write("Podaj stare hasło: ");
+                                        string oldPassword = ReadPassword();
+                                        Console.Write("Podaj nowe hasło: ");
+                                        string newPassword = ReadPassword();
+                                            if (authentication.ChangePassword(username, oldPassword, newPassword))
                                             {
-                                                if (newPassword.Length > 0)
-                                                {
-                                                    newPassword = newPassword.Substring(0, newPassword.Length - 1);
-                                                    Console.Write("\b \b");
-                                                }
+                                                Console.WriteLine("Hasło zostało zmienione.");
                                             }
                                             else
                                             {
-                                                newPassword += key.KeyChar;
-                                                Console.Write("*");
+                                                Console.WriteLine("Błąd przy zmianie hasła. Upewnij się, że stare hasło jest poprawne.");
                                             }
-                                        }
-                                    }
-                                    if (authentication.ChangePassword(username, oldPassword, newPassword))
-                                    {
-                                        Console.Clear();
-                                        Console.WriteLine("Hasło zostało pomyślnie zmienione.");
-                                    }
-                                    else
-                                    {
-                                        Console.Clear();
-                                        Console.WriteLine("Błąd podczas zmiany hasła. Spróbuj ponownie.");
-                                        break;
+                                            Thread.Sleep(2000);
+                                            break;
+                                        case 2:
+                                            // Wyjście z menu profilu
+                                            isProfileMenuActive = false;
+                                            break;
+                                            
                                     }
                                 }
                             }
